@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+     <script type="text/javascript" src="../browser.js"></script>
+     <script type="text/javascript" src="../Drawings/WorkEvents.js"></script>
+     <script type="text/javascript" src="../scroll.js"></script>
+</head>
+
+<body></body>
+
+<script>
+      var AscCommon = window['AscCommon'];
+      var div = document.createElement('div');
+      div.id = "ws-v-scrollbar";
+      div.style.width = '14px';
+      div.style.height = '720px';
+      div.style.position = "relative";
+
+      document.body.append(div);
+
+      var settings = new AscCommon.ScrollSettings();
+      var scrollObject = new AscCommon.ScrollObject("ws-v-scrollbar", settings);
+      
+
+
+</script>
+</html>
