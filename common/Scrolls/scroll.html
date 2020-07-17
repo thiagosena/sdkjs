@@ -10,18 +10,25 @@
 
 <script>
       var AscCommon = window['AscCommon'];
-      var div = document.createElement('div');
-      div.id = "ws-v-scrollbar";
-      div.style.width = '14px';
-      div.style.height = '720px';
-      div.style.position = "relative";
+      var divV = document.createElement('div');
+      divV.id = "ws-v-scrollbar";
+      divV.style.width = '14px';
+      divV.style.height = '720px';
+      divV.style.position = "relative";
 
-      document.body.append(div);
+      document.body.append(divV);
 
       var settings = new AscCommon.ScrollSettings();
       var scrollObject = new AscCommon.ScrollObject("ws-v-scrollbar", settings);
-      
 
+      var divH = document.createElement('div');
+      divH.id = "ws-h-scrollbar";
+      divH.style.width = '700px';
+      divH.style.height = '14px';
+      divH.style.position = "relative";
+      document.body.append(divH);
+      var settings = new AscCommon.ScrollSettings();
+      var scrollObject = new AscCommon.ScrollObject("ws-h-scrollbar", settings);
 
 </script>
 </html>
