@@ -650,19 +650,11 @@ CArrowDrawer.prototype.drawTopLeftArrow = function(type,mode,ctx,w,h){
         }
 
         ctx_piperImg = img1.getContext( '2d' );
-        _data = ctx_piperImg.getImageData( 0, 0, img1.width, img1.height );
-        px = _data.data;
-
-        _len = px.length;
-
-        for ( var i = 0; i < _len; i += 4 ) {
-            if ( px[i + 3] == 255 ) {
-                px[i] += 4;
-                px[i + 1] += 4;
-                px[i + 2] += 4;
-            }
-        }
-        ctx_piperImg.putImageData( _data, 0, 0 );
+        ctx_piperImg.globalCompositeOperation = "source-in";
+        ctx_piperImg.fillStyle = "rgb(" + 255 + "," +
+            255 + "," +
+           255 + ")";
+        ctx_piperImg.fillRect(0.5, 1.5, strokeW, strokeH);
 
         ctx1.drawImage( img1, 0, 0, that.SizeW, that.SizeH );
 
@@ -681,19 +673,11 @@ CArrowDrawer.prototype.drawTopLeftArrow = function(type,mode,ctx,w,h){
             that.startColorFadeInOutStart1 = startColorFadeIn;
 
             ctx_piperImg = img1.getContext( '2d' );
-            _data = ctx_piperImg.getImageData( 0, 0, img1.width, img1.height );
-            px = _data.data;
-
-            _len = px.length;
-
-            for ( var i = 0; i < _len; i += 4 ) {
-                if ( px[i + 3] == 255 ) {
-                    px[i] -= 4;
-                    px[i + 1] -= 4;
-                    px[i + 2] -= 4;
-                }
-            }
-            ctx_piperImg.putImageData( _data, 0, 0 );
+            ctx_piperImg.globalCompositeOperation = "source-in";
+            ctx_piperImg.fillStyle = "rgb(" + 173 + "," +
+                173 + "," +
+                173 + ")";
+            ctx_piperImg.fillRect(0.5, 1.5, strokeW, strokeH);
         }
 
     }
@@ -719,20 +703,11 @@ CArrowDrawer.prototype.drawTopLeftArrow = function(type,mode,ctx,w,h){
         }
 
         ctx_piperImg = img1.getContext( '2d' );
-        _data = ctx_piperImg.getImageData( 0, 0, img1.width, img1.height );
-        px = _data.data;
-
-        _len = px.length;
-
-        for ( var i = 0; i < _len; i += 4 ) {
-            if ( px[i + 3] == 255 ) {
-//                console.log("3 " + i + " " +  " " + px[i])
-                px[i] -= 4;
-                px[i + 1] -= 4;
-                px[i + 2] -= 4;
-            }
-        }
-        ctx_piperImg.putImageData( _data, 0, 0 );
+        ctx_piperImg.globalCompositeOperation = "source-in";
+        ctx_piperImg.fillStyle = "rgb(" + 173 + "," +
+            173 + "," +
+            173 + ")";
+        ctx_piperImg.fillRect(0.5, 1.5, strokeW, strokeH);
 
         ctx1.drawImage( img1, 0, 0, that.SizeW, that.SizeH );
 
@@ -751,19 +726,11 @@ CArrowDrawer.prototype.drawTopLeftArrow = function(type,mode,ctx,w,h){
             that.startColorFadeInOutStart1 = startColorFadeOut;
 
             ctx_piperImg = img1.getContext( '2d' );
-            _data = ctx_piperImg.getImageData( 0, 0, img1.width, img1.height );
-            px = _data.data;
-
-            _len = px.length;
-
-            for ( var i = 0; i < _len; i += 4 ) {
-                if ( px[i + 3] == 255 ) {
-                    px[i] += 4;
-                    px[i + 1] += 4;
-                    px[i + 2] += 4;
-                }
-            }
-            ctx_piperImg.putImageData( _data, 0, 0 );
+            ctx_piperImg.globalCompositeOperation = "source-in";
+            ctx_piperImg.fillStyle = "rgb(" + 255 + "," +
+                255 + "," +
+                255 + ")";
+            ctx_piperImg.fillRect(0.5, 1.5, strokeW, strokeH);
         }
 
     }
@@ -1080,19 +1047,11 @@ CArrowDrawer.prototype.drawBottomRightArrow = function(type,mode,ctx,w,h){
         }
 
         ctx_piperImg = img1.getContext( '2d' );
-        _data = ctx_piperImg.getImageData( 0, 0, img1.width, img1.height );
-        px = _data.data;
-
-        _len = px.length;
-
-        for ( var i = 0; i < _len; i += 4 ) {
-            if ( px[i + 3] == 255 ) {
-                px[i] += 4;
-                px[i + 1] += 4;
-                px[i + 2] += 4;
-            }
-        }
-        ctx_piperImg.putImageData( _data, 0, 0 );
+        ctx_piperImg.globalCompositeOperation = "source-in";
+        ctx_piperImg.fillStyle = "rgb(" + 255 + "," +
+            255 + "," +
+            255 + ")";
+        ctx_piperImg.fillRect(0.5, 1.5, strokeW, strokeH);
 
         ctx1.drawImage( img1, 0, 0, that.SizeW, that.SizeH );
 
@@ -1150,19 +1109,11 @@ CArrowDrawer.prototype.drawBottomRightArrow = function(type,mode,ctx,w,h){
         }
 
         ctx_piperImg = img1.getContext( '2d' );
-        _data = ctx_piperImg.getImageData( 0, 0, img1.width, img1.height );
-        px = _data.data;
-        _len = px.length;
-
-        for ( var i = 0; i < _len; i += 4 ) {
-            if ( px[i + 3] == 255 ) {
-                px[i] -= 4;
-                px[i + 1] -= 4;
-                px[i + 2] -= 4;
-            }
-        }
-
-        ctx_piperImg.putImageData( _data, 0, 0 );
+        ctx_piperImg.globalCompositeOperation = "source-in";
+        ctx_piperImg.fillStyle = "rgb(" + 173 + "," +
+            173 + "," +
+            173 + ")";
+        ctx_piperImg.fillRect(0.5, 1.5, strokeW, strokeH);
 
         ctx1.drawImage( img1, 0, 0, that.SizeW, that.SizeH );
 
@@ -2205,18 +2156,11 @@ function _HEXTORGB_( colorHEX ) {
 				y = (that.scroller.y >> 0) + Math.floor( that.scroller.h / 2 ) - 6;
 
 				ctx_piperImg = that.piperImgVert[0].getContext( '2d' );
-				_data = ctx_piperImg.getImageData( 0, 0, that.piperImgVert[0].width, that.piperImgVert[0].height );
-				px = _data.data;
-
-				for ( var i = 0; i < that.piperImgVert[0].width * that.piperImgVert[0].height * 4; i += 4 ) {
-					if ( px[i + 3] == 255 ) {
-						px[i] += 2;
-						px[i + 1] += 2;
-						px[i + 2] += 2;
-					}
-				}
-
-				ctx_piperImg.putImageData( _data, 0, 0 );
+                ctx_piperImg.globalCompositeOperation = "source-in";
+                ctx_piperImg.fillStyle = "rgb(" + 255 + "," +
+                    255 + "," +
+                    255 + ")";
+                ctx_piperImg.fillRect(0, 0, that.piperImgHor[0].height, that.piperImgHor[0].width);
 
 				img = that.piperImgVert[0];
 			}
@@ -2225,18 +2169,11 @@ function _HEXTORGB_( colorHEX ) {
 				y = that.scroller.y + (that.settings.slimScroll ? 2 : 3);
 
 				ctx_piperImg = that.piperImgHor[0].getContext( '2d' );
-				_data = ctx_piperImg.getImageData( 0, 0, that.piperImgHor[0].width, that.piperImgHor[0].height );
-				px = _data.data;
-
-				for ( var i = 0; i < that.piperImgHor[0].width * that.piperImgHor[0].height * 4; i += 4) {
-					if ( px[i + 3] == 255 ) {
-						px[i] += 2;
-						px[i + 1] += 2;
-						px[i + 2] += 2;
-					}
-				}
-
-				ctx_piperImg.putImageData( _data, 0, 0 );
+                ctx_piperImg.globalCompositeOperation = "source-in";
+                ctx_piperImg.fillStyle = "rgb(" + 255 + "," +
+                    255 + "," +
+                    255 + ")";
+                ctx_piperImg.fillRect(0, 0, that.piperImgHor[0].width, that.piperImgHor[0].height);
 
 				img = that.piperImgHor[0];
 			}
@@ -2254,18 +2191,11 @@ function _HEXTORGB_( colorHEX ) {
 				if ( that._checkPiperImagesV() ) {
 
 					ctx_piperImg = that.piperImgVert[0].getContext( '2d' );
-					_data = ctx_piperImg.getImageData( 0, 0, that.piperImgVert[0].width, that.piperImgVert[0].height );
-					px = _data.data;
-
-					for ( var i = 0; i < that.piperImgVert[0].width * that.piperImgVert[0].height * 4; i += 4 ) {
-						if ( px[i + 3] == 255 ) {
-							px[i] -= 2;
-							px[i + 1] -= 2;
-							px[i + 2] -= 2;
-						}
-					}
-
-					ctx_piperImg.putImageData( _data, 0, 0 );
+                    ctx_piperImg.globalCompositeOperation = "source-in";
+                    ctx_piperImg.fillStyle = "rgb(" + 255 + "," +
+                        255 + "," +
+                        255 + ")";
+                    ctx_piperImg.fillRect(0, 0, that.piperImgHor[0].height, that.piperImgHor[0].width);
 
 					img = that.piperImgVert[0];
 
@@ -2273,18 +2203,11 @@ function _HEXTORGB_( colorHEX ) {
 				else if ( that._checkPiperImagesH() ) {
 
 					ctx_piperImg = that.piperImgHor[0].getContext( '2d' );
-					_data = ctx_piperImg.getImageData( 0, 0, that.piperImgHor[0].width, that.piperImgHor[0].height );
-					px = _data.data;
-
-					for ( var i = 0; i < that.piperImgHor[0].width * that.piperImgHor[0].height * 4; i += 4) {
-						if ( px[i + 3] == 255 ) {
-							px[i] -= 2;
-							px[i + 1] -= 2;
-							px[i + 2] -= 2;
-						}
-					}
-
-					ctx_piperImg.putImageData( _data, 0, 0 )
+                    ctx_piperImg.globalCompositeOperation = "source-in";
+                    ctx_piperImg.fillStyle = "rgb(" + 255 + "," +
+                        255 + "," +
+                        255 + ")";
+                    ctx_piperImg.fillRect(0, 0, that.piperImgHor[0].width, that.piperImgHor[0].height);
 
 					img = that.piperImgHor[0];
 
@@ -2323,19 +2246,11 @@ function _HEXTORGB_( colorHEX ) {
 				y = (that.scroller.y >> 0) + Math.floor( that.scroller.h / 2 ) - 6;
 
 				ctx_piperImg = that.piperImgVert[0].getContext( '2d' );
-				_data = ctx_piperImg.getImageData( 0, 0, that.piperImgVert[0].width, that.piperImgVert[0].height );
-				px = _data.data;
-
-				for ( var i = 0; i < that.piperImgVert[0].width * that.piperImgVert[0].height * 4; i += 4) {
-
-					if ( px[i + 3] == 255 ) {
-						px[i] -= 2;
-						px[i + 1] -= 2;
-						px[i + 2] -= 2;
-					}
-				}
-
-				ctx_piperImg.putImageData( _data, 0, 0 );
+                ctx_piperImg.globalCompositeOperation = "source-in";
+                ctx_piperImg.fillStyle = "rgb(" + 207 + "," +
+                    207 + "," +
+                    207 + ")";
+                ctx_piperImg.fillRect(0, 0, that.piperImgHor[0].height, that.piperImgHor[0].width);
 
 				img = that.piperImgVert[0];
 
@@ -2345,18 +2260,11 @@ function _HEXTORGB_( colorHEX ) {
 				y = that.scroller.y + (that.settings.slimScroll ? 2 : 3);
 
 				ctx_piperImg = that.piperImgHor[0].getContext( '2d' );
-				_data = ctx_piperImg.getImageData( 0, 0, that.piperImgHor[0].width, that.piperImgHor[0].height );
-				px = _data.data;
-
-				for ( var i = 0; i < that.piperImgHor[0].width * that.piperImgHor[0].height * 4; i+=4 ) {
-					if ( px[i + 3] == 255 ) {
-						px[i] -= 2;
-						px[i + 1] -= 2;
-						px[i + 2] -= 2;
-					}
-				}
-
-				ctx_piperImg.putImageData( _data, 0, 0 )
+                ctx_piperImg.globalCompositeOperation = "source-in";
+                ctx_piperImg.fillStyle = "rgb(" + 207 + "," +
+                    207 + "," +
+                    207 + ")";
+                ctx_piperImg.fillRect(0, 0, that.piperImgHor[0].width, that.piperImgHor[0].height);
 
 				img = that.piperImgHor[0];
 			}
@@ -2374,18 +2282,11 @@ function _HEXTORGB_( colorHEX ) {
 				if ( that._checkPiperImagesV() ) {
 
 					ctx_piperImg = that.piperImgVert[0].getContext( '2d' );
-					_data = ctx_piperImg.getImageData( 0, 0, that.piperImgVert[0].width, that.piperImgVert[0].height );
-					px = _data.data;
-
-					for ( var i = 0; i < that.piperImgVert[0].width * that.piperImgVert[0].height * 4; i+= 4 ) {
-						if ( px[i + 3] == 255 ) {
-							px[i] += 2;
-							px[i + 1] += 2;
-							px[i + 2] += 2;
-						}
-					}
-
-					ctx_piperImg.putImageData( _data, 0, 0 );
+                    ctx_piperImg.globalCompositeOperation = "source-in";
+                    ctx_piperImg.fillStyle = "rgb(" + 207 + "," +
+                        207 + "," +
+                        207 + ")";
+                    ctx_piperImg.fillRect(0, 0, that.piperImgHor[0].height, that.piperImgHor[0].width);
 
 					img = that.piperImgVert[0];
 
@@ -2395,18 +2296,11 @@ function _HEXTORGB_( colorHEX ) {
 					y = that.scroller.y + 3;
 
 					ctx_piperImg = that.piperImgHor[0].getContext( '2d' );
-					_data = ctx_piperImg.getImageData( 0, 0, that.piperImgHor[0].width, that.piperImgHor[0].height );
-					px = _data.data;
-
-					for ( var i = 0; i < that.piperImgHor[0].width * that.piperImgHor[0].height * 4; i+=4 ) {
-						if ( px[i + 3] == 255 ) {
-							px[i] += 2;
-							px[i + 1] += 2;
-							px[i + 2] += 2;
-						}
-					}
-
-					ctx_piperImg.putImageData( _data, 0, 0 )
+                    ctx_piperImg.globalCompositeOperation = "source-in";
+                    ctx_piperImg.fillStyle = "rgb(" + 207 + "," +
+                        207 + "," +
+                        207 + ")";
+                    ctx_piperImg.fillRect(0, 0, that.piperImgHor[0].width, that.piperImgHor[0].height);
 
 					img = that.piperImgHor[0];
 				}
