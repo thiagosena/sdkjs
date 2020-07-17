@@ -243,7 +243,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
     this.ImageBottom[ScrollOverType.ACTIVE].height = this.SizeH;
 
 
-    var len = 6;
+    var len = parseInt(this.SizeH  / 2.166);
     if ( this.SizeH < 6 )
         return;
 
