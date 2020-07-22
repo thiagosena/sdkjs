@@ -1891,8 +1891,7 @@ function _HEXTORGB_( colorHEX ) {
 		this.RecalcScroller();
 		this.reinit = true;
         if (this.isVerticalScroll) {
-            var isDelta = pos !== undefined ? true : false;
-            this.scrollByY(pos - this.scrollVCurrentY, isDelta);
+            pos !== undefined ? this.scrollByY(pos - this.scrollVCurrentY, true) : this.scrollByY(this.scrollVCurrentY);
         }
 
 		if ( this.isHorizontalScroll ) {
