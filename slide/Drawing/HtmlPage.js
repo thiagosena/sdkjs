@@ -1363,7 +1363,7 @@ function CEditorPage(api)
 			oWordControl.m_bIsUpdateVerRuler = true;
 		}
 		var lPosition = parseInt(dPosition * oWordControl.m_oScrollVerApi.getMaxScrolledY());
-		oWordControl.m_oScrollVerApi.scrollToY(lPosition);
+		oWordControl.m_oScrollVerApi.scrollByY(lPosition);
 
 		this.ZoomFreePageNum = -1;
 
@@ -1532,7 +1532,7 @@ function CEditorPage(api)
 			isNeedScroll                   = true;
 			this.m_bIsUpdateTargetNoAttack = true;
 			var temp                       = nValueScrollVer * this.m_dScrollY_max / (this.m_dDocumentHeight - h);
-			this.m_oScrollVerApi.scrollToY(parseInt(temp), false);
+			this.m_oScrollVerApi.scrollByY(parseInt(temp), false);
 		}
 
 		if (true === isNeedScroll)
@@ -1798,7 +1798,7 @@ function CEditorPage(api)
 		if (0 != scrollYVal)
 		{
 			if (((oWordControl.m_dScrollY + scrollYVal) >= oWordControl.SlideScrollMIN) && ((oWordControl.m_dScrollY + scrollYVal) <= oWordControl.SlideScrollMAX))
-				oWordControl.m_oScrollVerApi.scrollByY(scrollYVal, false);
+				oWordControl.m_oScrollVerApi.scrollByY(scrollYVal, true, false);
 		}
 		if (0 != scrollXVal)
 			oWordControl.m_oScrollHorApi.scrollByX(scrollXVal, false);
@@ -4318,7 +4318,7 @@ function CEditorPage(api)
 			if (this.SlideScrollMAX > this.m_dScrollY_max)
 				this.SlideScrollMAX = this.m_dScrollY_max;
 
-			this.m_oScrollVerApi.scrollToY(this.SlideScrollMAX);
+			this.m_oScrollVerApi.scrollByY(this.SlideScrollMAX);
 			this.IsGoToPageMAXPosition = false;
 		}
 		else
@@ -4327,7 +4327,7 @@ function CEditorPage(api)
 			if (this.m_dScrollY_Central > this.m_dScrollY_max)
 				this.m_dScrollY_Central = this.m_dScrollY_max;
 
-			this.m_oScrollVerApi.scrollToY(this.m_dScrollY_Central);
+			this.m_oScrollVerApi.scrollByY(this.m_dScrollY_Central);
 		}
 
 		if (this.m_bIsHorScrollVisible)

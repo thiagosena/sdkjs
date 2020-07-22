@@ -1017,7 +1017,7 @@ function CEditorPage(api)
 		if (oWordControl.m_dScrollY == 0)
 			_y_pos = 0;
 
-		oWordControl.m_oScrollVerApi.scrollToY(_y_pos);
+		oWordControl.m_oScrollVerApi.scrollByY(_y_pos);
 		oWordControl.m_oScrollHorApi.scrollToX(_x_pos);
 
 		if (this.MobileTouchManager)
@@ -1180,7 +1180,7 @@ function CEditorPage(api)
 			isNeedScroll                   = true;
 			this.m_bIsUpdateTargetNoAttack = true;
 			var temp                       = nValueScrollVer * this.m_dScrollY_max / (this.m_dDocumentHeight - this.m_oEditor.HtmlElement.height);
-			this.m_oScrollVerApi.scrollToY(parseInt(temp), false);
+			this.m_oScrollVerApi.scrollByY(parseInt(temp), false);
 		}
 
 		if (true === isNeedScroll)
@@ -1253,7 +1253,7 @@ function CEditorPage(api)
 			isNeedScroll                   = true;
 			this.m_bIsUpdateTargetNoAttack = true;
 			var temp                       = nValueScrollVer * this.m_dScrollY_max / (this.m_dDocumentHeight - _hh);
-			this.m_oScrollVerApi.scrollToY(parseInt(temp), false);
+			this.m_oScrollVerApi.scrollByY(parseInt(temp), false);
 		}
 
 		if (true === isNeedScroll)
@@ -1553,7 +1553,7 @@ function CEditorPage(api)
 		}
 
 		if (0 != scrollYVal)
-			oWordControl.m_oScrollVerApi.scrollByY(scrollYVal, false);
+			oWordControl.m_oScrollVerApi.scrollByY(scrollYVal, true, false);
 		if (0 != scrollXVal)
 			oWordControl.m_oScrollHorApi.scrollByX(scrollXVal, false);
 

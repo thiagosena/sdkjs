@@ -5354,7 +5354,7 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.ViewScrollToY             = function(y)
 	{
-		this.WordControl.m_oScrollVerApi.scrollToY(y);
+		this.WordControl.m_oScrollVerApi.scrollByY(y);
 	};
 	asc_docs_api.prototype.GetDocWidthPx             = function()
 	{

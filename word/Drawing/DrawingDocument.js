@@ -3922,7 +3922,7 @@ function CDrawingDocument()
 			isNeedScroll = true;
 			this.m_oWordControl.m_bIsUpdateTargetNoAttack = true;
 			var temp = nValueScrollVer * this.m_oWordControl.m_dScrollY_max / (this.m_oWordControl.m_dDocumentHeight - _hh);
-			this.m_oWordControl.m_oScrollVerApi.scrollToY(parseInt(temp), false);
+			this.m_oWordControl.m_oScrollVerApi.scrollByY(parseInt(temp), false);
 		}
 
 		if (true == isNeedScroll)
@@ -4016,7 +4016,7 @@ function CDrawingDocument()
 		{
 			isNeedScroll = true;
 			var temp = nValueScrollVer * this.m_oWordControl.m_dScrollY_max / (this.m_oWordControl.m_dDocumentHeight - _hh);
-			this.m_oWordControl.m_oScrollVerApi.scrollToY(parseInt(temp), false);
+			this.m_oWordControl.m_oScrollVerApi.scrollByY(parseInt(temp), false);
 		}
 
 		if (true == isNeedScroll)
@@ -4105,7 +4105,7 @@ function CDrawingDocument()
 		{
 			isNeedScroll = true;
 			oWordControl.m_bIsUpdateTargetNoAttack = true;
-			oWordControl.m_oScrollVerApi.scrollByY(-nValueScrollVer, false);
+			oWordControl.m_oScrollVerApi.scrollByY(-nValueScrollVer, true, false);
 		}
 
 		if (true === isNeedScroll)

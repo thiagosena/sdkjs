@@ -498,7 +498,7 @@
 		this.HtmlPage.NoneRepaintPages = (true === _scroll.isAnimating) ? true : false;
 		if (_scroll.directionLocked == "v")
 		{
-			this.HtmlPage.m_oScrollVerApi.scrollToY(-_scroll.y);
+			this.HtmlPage.m_oScrollVerApi.scrollByY(-_scroll.y);
 		}
 		else if (_scroll.directionLocked == "h")
 		{
@@ -507,7 +507,7 @@
 		else if (_scroll.directionLocked == "n")
 		{
 			this.HtmlPage.m_oScrollHorApi.scrollToX(-_scroll.x);
-			this.HtmlPage.m_oScrollVerApi.scrollToY(-_scroll.y);
+			this.HtmlPage.m_oScrollVerApi.scrollByY(-_scroll.y);
 		}
 	};
 	CMobileDelegateEditor.prototype.ScrollEnd = function(_scroll)

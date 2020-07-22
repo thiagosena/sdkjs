@@ -1847,7 +1847,7 @@ function _HEXTORGB_( colorHEX ) {
 			if (this.scrollVCurrentY > this.maxScrollY)
 				this.scrollVCurrentY = this.maxScrollY;
 
-			this.scrollToY( this.scrollVCurrentY );
+			this.scrollByY( this.scrollVCurrentY );
 			if(this.maxScrollY == 0){
 				this.canvas.style.display = "none";
 			}
@@ -1890,9 +1890,10 @@ function _HEXTORGB_( colorHEX ) {
 		this.paneWidth = this.canvasW - this.arrowPosition * 2;
 		this.RecalcScroller();
 		this.reinit = true;
-		if ( this.isVerticalScroll ) {
-			pos !== undefined ? this.scrollByY( pos - this.scrollVCurrentY ) : this.scrollToY( this.scrollVCurrentY );
-		}
+        if (this.isVerticalScroll) {
+            var isDelta = pos !== undefined ? true : false;
+            this.scrollByY(pos - this.scrollVCurrentY, isDelta);
+        }
 
 		if ( this.isHorizontalScroll ) {
 			pos !== undefined ? this.scrollByX( pos - this.scrollHCurrentX ) : this.scrollToX( this.scrollHCurrentX );
@@ -1901,7 +1902,7 @@ function _HEXTORGB_( colorHEX ) {
 		this._drawArrow();
 		this._draw();
 	};
-	ScrollObject.prototype._scrollV = function ( that, evt, pos, isTop, isBottom, bIsAttack ) {
+	ScrollObject.prototype._scrollV = function ( that, evt, pos, bIsAttack ) {
 		if ( !this.isVerticalScroll ) {
 			return;
 		}
@@ -1924,32 +1925,7 @@ function _HEXTORGB_( colorHEX ) {
 			that.handleEvents( "onscrollVEnd", evt );
 		}
 	};
-	ScrollObject.prototype._correctScrollV = function ( that, yPos ) {
-		if ( !this.isVerticalScroll )
-			return null;
 
-		var events = that.eventListeners["oncorrectVerticalScroll"];
-		if ( events ) {
-			if ( events.length != 1 )
-				return null;
-
-			return events[0].handler.apply( that, [yPos] );
-		}
-		return null;
-	};
-	ScrollObject.prototype._correctScrollByYDelta = function ( that, delta ) {
-		if ( !this.isVerticalScroll )
-			return null;
-
-		var events = that.eventListeners["oncorrectVerticalScrollDelta"];
-		if ( events ) {
-			if ( events.length != 1 )
-				return null;
-
-			return events[0].handler.apply( that, [delta] );
-		}
-		return null;
-	};
 	ScrollObject.prototype._scrollH = function ( that, evt, pos, isTop, isBottom ) {
 		if ( !this.isHorizontalScroll ) {
 			return;
@@ -1969,30 +1945,24 @@ function _HEXTORGB_( colorHEX ) {
 		}
 
 	};
-	ScrollObject.prototype.scrollByY = function ( delta, bIsAttack ) {
+	ScrollObject.prototype.scrollByY = function ( delta, isDelta, bIsAttack ) {
 		if ( !this.isVerticalScroll ) {
 			return;
 		}
 
-		var result = this._correctScrollByYDelta( this, delta );
-		if ( result != null && result.isChange === true )
-			delta = result.Pos;
+        if (isDelta) {
+            var destY = this.scrollVCurrentY + delta, vend = false;
 
-		var destY = this.scrollVCurrentY + delta, isTop = false, isBottom = false, vend = false;
-
-		if ( destY < 0 ) {
-			destY = 0;
-			isTop = true;
-			isBottom = false;
-		}
-		else if ( destY > this.maxScrollY2 ) {
-			this.handleEvents( "onscrollVEnd", destY - this.maxScrollY );
-			vend = true;
-			destY = this.maxScrollY2;
-			isTop = false;
-			isBottom = true;
-		}
-
+            if (destY < 0) {
+                destY = 0;
+            } else if (destY > this.maxScrollY2) {
+                this.handleEvents("onscrollVEnd", destY - this.maxScrollY);
+                vend = true;
+                destY = this.maxScrollY2;
+            }
+        } else {
+            var destY = delta;
+        }
 		this.scroller.y = destY / Math.max( 1, this.scrollCoeff ) + this.arrowPosition;
 		if ( this.scroller.y < this.dragMinY )
 			this.scroller.y = this.dragMinY + 1;
@@ -2009,31 +1979,12 @@ function _HEXTORGB_( colorHEX ) {
 		if ( vend ) {
 			this.moveble = true;
 		}
-		this._scrollV( this, {}, destY, isTop, isBottom, bIsAttack );
+		this._scrollV( this, {}, destY, bIsAttack );
 		if ( vend ) {
 			this.moveble = false;
 		}
 	};
-	ScrollObject.prototype.scrollToY = function ( destY ) {
-		if ( !this.isVerticalScroll ) {
-			return;
-		}
 
-		this.scroller.y = destY / Math.max( 1, this.scrollCoeff ) + this.arrowPosition;
-		if ( this.scroller.y < this.dragMinY )
-			this.scroller.y = this.dragMinY + 1;
-		else if ( this.scroller.y > this.dragMaxY )
-			this.scroller.y = this.dragMaxY;
-
-		var arrow = this.settings.showArrows ? this.arrowPosition : 0;
-		if ( this.scroller.y + this.scroller.h > this.canvasH - arrow ) {
-			this.scroller.y -= Math.abs( this.canvasH - arrow - this.scroller.y - this.scroller.h );
-		}
-
-		this.scroller.y = Math.round(this.scroller.y);
-
-		this._scrollV( this, {}, destY, false, false );
-	};
 	ScrollObject.prototype.scrollByX = function ( delta ) {
 		if ( !this.isHorizontalScroll ) {
 			return;
@@ -2096,11 +2047,11 @@ function _HEXTORGB_( colorHEX ) {
 	};
 	ScrollObject.prototype.scrollTo = function ( destX, destY ) {
 		this.scrollToX( destX );
-		this.scrollToY( destY );
+		this.scrollByY( destY );
 	};
 	ScrollObject.prototype.scrollBy = function ( deltaX, deltaY ) {
 		this.scrollByX( deltaX );
-		this.scrollByY( deltaY );
+		this.scrollByY( deltaY, true );
 	};
 
 	ScrollObject.prototype.roundRect = function ( x, y, width, height, radius ) {
@@ -2746,7 +2697,7 @@ function _HEXTORGB_( colorHEX ) {
 		var that = this, scrollTimeout, isFirst = true,
 			doScroll = function () {
 				if ( that.isVerticalScroll )
-					that.scrollByY( that.settings.vscrollStep );
+					that.scrollByY( that.settings.vscrollStep, true );
 				else if ( that.isHorizontalScroll )
 					that.scrollByX( that.settings.hscrollStep );
 				that._drawArrow( ArrowStatus.upLeftArrowNonActive_downRightArrowActive );
@@ -2763,7 +2714,7 @@ function _HEXTORGB_( colorHEX ) {
 		var that = this, scrollTimeout, isFirst = true,
 			doScroll = function () {
 				if ( that.isVerticalScroll )
-					that.scrollByY( -that.settings.vscrollStep );
+					that.scrollByY( -that.settings.vscrollStep, true );
 				else if ( that.isHorizontalScroll )
 					that.scrollByX( -that.settings.hscrollStep );
 				that._drawArrow( ArrowStatus.upLeftArrowActive_downRightArrowNonActive );
@@ -2844,7 +2795,6 @@ function _HEXTORGB_( colorHEX ) {
 
 		if ( this.that.isVerticalScroll ) {
 			if ( this.that.moveble && this.that.scrollerMouseDown ) {
-				var isTop = false, isBottom = false;
 				this.that.scrollerStatus = ScrollOverType.ACTIVE;
 				var _dlt = this.that.EndMousePosition.y - this.that.StartMousePosition.y;
 				if ( this.that.EndMousePosition.y == this.that.StartMousePosition.y ) {
@@ -2868,13 +2818,8 @@ function _HEXTORGB_( colorHEX ) {
 				}
 
 				var destY = (this.that.scroller.y - this.that.arrowPosition) * this.that.scrollCoeff;
-				//var result = editor.WordControl.CorrectSpeedVerticalScroll(destY);
-				var result = this.that._correctScrollV( this.that, destY );
-				if ( result != null && result.isChange === true ) {
-					destY = result.Pos;
-				}
 
-				this.that._scrollV( this.that, evt, destY, isTop, isBottom );
+				this.that._scrollV( this.that, evt, destY);
 				this.that.moveble = false;
 				this.that.StartMousePosition.x = this.that.EndMousePosition.x;
 				this.that.StartMousePosition.y = this.that.EndMousePosition.y;
@@ -3044,22 +2989,22 @@ function _HEXTORGB_( colorHEX ) {
 							_tmp.that.lock = true;
 							if ( direction > 0 ) {
 								if ( _tmp.that.scroller.y + _tmp.that.scroller.h / 2 + step < mousePos.y ) {
-									_tmp.that.scrollByY( step * _tmp.that.scrollCoeff );
+									_tmp.that.scrollByY( step * _tmp.that.scrollCoeff, true );
 								}
 								else {
 									var _step = Math.abs( _tmp.that.scroller.y + _tmp.that.scroller.h / 2 - mousePos.y );
-									_tmp.that.scrollByY( _step * _tmp.that.scrollCoeff );
+									_tmp.that.scrollByY( _step * _tmp.that.scrollCoeff, true );
 									cancelClick();
 									return;
 								}
 							}
 							else if ( direction < 0 ) {
 								if ( _tmp.that.scroller.y + _tmp.that.scroller.h / 2 - step > mousePos.y ) {
-									_tmp.that.scrollByY( -step * _tmp.that.scrollCoeff );
+									_tmp.that.scrollByY( -step * _tmp.that.scrollCoeff, true );
 								}
 								else {
 									var _step = Math.abs( _tmp.that.scroller.y + _tmp.that.scroller.h / 2 - mousePos.y );
-									_tmp.that.scrollByY( -_step * _tmp.that.scrollCoeff );
+									_tmp.that.scrollByY( -_step * _tmp.that.scrollCoeff, true );
 									cancelClick();
 									return;
 								}
@@ -3154,7 +3099,7 @@ function _HEXTORGB_( colorHEX ) {
 		else if ( this.that.scroller.y + this.that.scroller.h > this.that.canvasH ) {
 			this.that.scroller.y = this.that.canvasH - this.that.arrowPosition - this.that.scroller.h;
 		}
-		this.that.scrollByY( delta )
+		this.that.scrollByY( delta, true )
 	};
 	ScrollObject.prototype.evt_click = function ( e ) {
 		var evt = e || window.event;
@@ -3175,13 +3120,13 @@ function _HEXTORGB_( colorHEX ) {
 		if ( this.that.isVerticalScroll ) {
 			if ( mousePos.y > this.that.arrowPosition && mousePos.y < this.that.canvasH - this.that.arrowPosition ) {
 				if ( this.that.scroller.y > mousePos.y ) {
-					this.that.scrollByY( -this.that.settings.vscrollStep );
+					this.that.scrollByY( -this.that.settings.vscrollStep, true );
 				}
 				if ( this.that.scroller.y < mousePos.y && this.that.scroller.y + this.that.scroller.h > mousePos.y ) {
 					return false;
 				}
 				if ( this.that.scroller.y + this.that.scroller.h < mousePos.y ) {
-					this.that.scrollByY( this.that.settings.hscrollStep );
+					this.that.scrollByY( this.that.settings.hscrollStep, true );
 				}
 			}
 		}

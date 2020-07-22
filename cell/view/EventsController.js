@@ -278,7 +278,7 @@
 
 			if (event && event.preventDefault)
 				event.preventDefault();
-			this.vsbApi.scrollByY(this.settings.vscrollStep * delta);
+			this.vsbApi.scrollByY(this.settings.vscrollStep * delta, true);
 			return true;
 		};
 

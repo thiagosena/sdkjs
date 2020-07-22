@@ -2098,7 +2098,7 @@ function CDrawingDocument()
 					nValueScrollVer = this.m_oWordControl.SlideScrollMIN;
 
 				if (this.m_oWordControl.m_oTimerScrollSelect == -1)
-					this.m_oWordControl.m_oScrollVerApi.scrollToY(nValueScrollVer, false);
+					this.m_oWordControl.m_oScrollVerApi.scrollByY(nValueScrollVer, false);
 			}
 
 			if (true == isNeedScroll)
@@ -2138,7 +2138,7 @@ function CDrawingDocument()
 			if (0 != nValueScrollVer)
 			{
 				this.m_oWordControl.m_bIsUpdateTargetNoAttack = true;
-				this.m_oWordControl.m_oScrollNotes_.scrollToY(nValueScrollVer, false);
+				this.m_oWordControl.m_oScrollNotes_.scrollByY(nValueScrollVer, false);
 				this.m_oWordControl.OnScroll();
 				return;
 			}
@@ -3986,11 +3986,11 @@ function CThumbnailsManager()
 		if (y1 < 0)
 		{
 			var _sizeH = y2 - y1;
-			this.m_oWordControl.m_oScrollThumbApi.scrollToY(pageNum * _sizeH + (pageNum + 1) * this.const_border_w);
+			this.m_oWordControl.m_oScrollThumbApi.scrollByY(pageNum * _sizeH + (pageNum + 1) * this.const_border_w);
 		}
 		else if (y2 > this.m_oWordControl.m_oThumbnails.HtmlElement.height)
 		{
-			this.m_oWordControl.m_oScrollThumbApi.scrollByY(y2 - this.m_oWordControl.m_oThumbnails.HtmlElement.height);
+			this.m_oWordControl.m_oScrollThumbApi.scrollByY(y2 - this.m_oWordControl.m_oThumbnails.HtmlElement.height, true);
 		}
 	};
 
@@ -4032,11 +4032,11 @@ function CThumbnailsManager()
 				if (y1 < 0)
 				{
 					var _sizeH = y2 - y1;
-					this.m_oWordControl.m_oScrollThumbApi.scrollToY(pageNum * _sizeH + (pageNum + 1) * this.const_border_w);
+					this.m_oWordControl.m_oScrollThumbApi.scrollByY(pageNum * _sizeH + (pageNum + 1) * this.const_border_w);
 				}
 				else if (y2 > this.m_oWordControl.m_oThumbnails.HtmlElement.height)
 				{
-					this.m_oWordControl.m_oScrollThumbApi.scrollByY(y2 - this.m_oWordControl.m_oThumbnails.HtmlElement.height);
+					this.m_oWordControl.m_oScrollThumbApi.scrollByY(y2 - this.m_oWordControl.m_oThumbnails.HtmlElement.height, true);
 				}
 			}
 		}
@@ -4213,11 +4213,11 @@ function CThumbnailsManager()
 
 	this.OnScrollTrackTop    = function()
 	{
-		oThis.m_oWordControl.m_oScrollThumbApi.scrollByY(-45);
+		oThis.m_oWordControl.m_oScrollThumbApi.scrollByY(-45, true);
 	};
 	this.OnScrollTrackBottom = function()
 	{
-		oThis.m_oWordControl.m_oScrollThumbApi.scrollByY(45);
+		oThis.m_oWordControl.m_oScrollThumbApi.scrollByY(45, true);
 	};
 
 	this.onMouseUp = function(e, bIsWindow)
@@ -4554,7 +4554,7 @@ function CThumbnailsManager()
 		if (this.m_bIsScrollVisible)
 		{
 			var lPosition = (dPosition * word_control.m_oScrollThumbApi.getMaxScrolledY()) >> 0;
-			word_control.m_oScrollThumbApi.scrollToY(lPosition);
+			word_control.m_oScrollThumbApi.scrollByY(lPosition);
 		}
 
 		this.ScrollerHeight = nHeightPix;
@@ -6044,7 +6044,7 @@ function CNotesDrawer(page)
 			this.HtmlPage.m_oScrollNotes_.Repos(settings, undefined, true);
 
 			if (isChangedSlide)
-				this.HtmlPage.m_oScrollNotes_.scrollToY(0);
+				this.HtmlPage.m_oScrollNotes_.scrollByY(0);
 		}
 		else
 		{
@@ -6279,7 +6279,7 @@ function CNotesDrawer(page)
 
 		if (0 != scrollYVal)
 		{
-			oThis.HtmlPage.m_oScrollNotes_.scrollByY(scrollYVal, false);
+			oThis.HtmlPage.m_oScrollNotes_.scrollByY(scrollYVal, true,false);
 			oThis.onMouseMove();
 		}
 	};

@@ -110,7 +110,7 @@
 		var bIsHorPresent = (this.HtmlPage.m_oScrollHorApi != null);
 		if (_scroll.directionLocked == "v")
 		{
-			this.HtmlPage.m_oScrollVerApi.scrollToY(-_scroll.y + this.HtmlPage.SlideScrollMIN);
+			this.HtmlPage.m_oScrollVerApi.scrollByY(-_scroll.y + this.HtmlPage.SlideScrollMIN);
 		}
 		else if (_scroll.directionLocked == "h" && bIsHorPresent)
 		{
@@ -120,7 +120,7 @@
 		{
 			if (bIsHorPresent)
 				this.HtmlPage.m_oScrollHorApi.scrollToX(-_scroll.x);
-			this.HtmlPage.m_oScrollVerApi.scrollToY(-_scroll.y + this.HtmlPage.SlideScrollMIN);
+			this.HtmlPage.m_oScrollVerApi.scrollByY(-_scroll.y + this.HtmlPage.SlideScrollMIN);
 		}
 	};
 	CMobileDelegateEditorPresentation.prototype.GetScrollPosition = function()
@@ -1079,7 +1079,7 @@
 	};
 	CMobileDelegateThumbnails.prototype.ScrollTo = function(_scroll)
 	{
-		this.HtmlPage.m_oScrollThumbApi.scrollToY(-_scroll.y);
+		this.HtmlPage.m_oScrollThumbApi.scrollByY(-_scroll.y);
 	};
 	CMobileDelegateThumbnails.prototype.ScrollEnd = function(_scroll)
 	{

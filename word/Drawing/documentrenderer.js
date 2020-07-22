@@ -3410,17 +3410,17 @@ CDocMeta.prototype =
 
         if ( e.KeyCode == 33 ) // PgUp
         {
-            editor.WordControl.m_oScrollVerApi.scrollByY(-editor.WordControl.m_oEditor.HtmlElement.height, false);
+            editor.WordControl.m_oScrollVerApi.scrollByY(-editor.WordControl.m_oEditor.HtmlElement.height, true, false);
         }
         else if ( e.KeyCode == 34 ) // PgDn
         {
-            editor.WordControl.m_oScrollVerApi.scrollByY(editor.WordControl.m_oEditor.HtmlElement.height, false);
+            editor.WordControl.m_oScrollVerApi.scrollByY(editor.WordControl.m_oEditor.HtmlElement.height, true, false);
         }
         else if ( e.KeyCode == 35 ) // êëàâèøà End
         {
             if ( true === e.CtrlKey ) // Ctrl + End - ïåðåõîä â êîíåö äîêóìåíòà
             {
-                editor.WordControl.m_oScrollVerApi.scrollToY(editor.WordControl.m_dScrollY_max, false);
+                editor.WordControl.m_oScrollVerApi.scrollByY(editor.WordControl.m_dScrollY_max, false);
             }
 
             bRetValue = true;
@@ -3429,7 +3429,7 @@ CDocMeta.prototype =
         {
             if ( true === e.CtrlKey ) // Ctrl + Home - ïåðåõîä â íà÷àëî äîêóìåíòà
             {
-                editor.WordControl.m_oScrollVerApi.scrollToY(0, false);
+                editor.WordControl.m_oScrollVerApi.scrollByY(0, false);
             }
 
             bRetValue = true;
