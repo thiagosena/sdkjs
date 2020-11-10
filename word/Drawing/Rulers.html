@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="../../develop/sdkjs/word/scripts.js"></script>
+    <script type="text/javascript" src="../../vendor/jquery.min.js"></script>
+    <link type="text/css" href="../../vendor/qunit/qunit-1.11.0.css" rel="stylesheet" media="screen"/>
+    <script type="text/javascript" src="../../vendor/qunit/qunit-1.11.0.js"></script>
+    <script type="text/javascript" src="../../vendor/xregexp-all-min.js"></script>
+    <script type="text/javascript">
+        window.sdk_scripts.forEach(function (item) {
+            document.write('<script type="text/javascript" src="' + item.substring('../'.length) + '"><\/script>');
+        });
+    </script>
+</head>
+
+<body>
+<script type="text/javascript">
+
+    function createRulers() {
+        var divHorRuler = document.createElement('div');
+        divHorRuler.id = "id_panel_top";
+        divHorRuler.className = "block_elem";
+        divHorRuler.style.display = "block";
+        divHorRuler.style.left = "19px";
+        divHorRuler.style.top = "0px";
+        divHorRuler.style.width = "794px";
+        divHorRuler.style.height = "26px";
+        divHorRuler.innerHTML = `<canvas id="id_hor_ruler" class="block_elem" width="${Math.round(794 * window.devicePixelRatio)}" height="${Math.round(26 * window.devicePixelRatio)}"
+            style="left: 0px; top: 0px; width: 100%; height: 100%;"></canvas>`;
+        document.body.appendChild(divHorRuler);
+
+        var divVertRuler = document.createElement('div');
+        divVertRuler.id = "id_panel_left";
+        divVertRuler.className = "block_elem";
+        divVertRuler.style.display = "block";
+        divVertRuler.style.left = "19px";
+        divVertRuler.style.top = "0px";
+        divVertRuler.style.width = "19px";
+        divVertRuler.style.height = "794px";
+        divVertRuler.innerHTML = `<canvas id="id_vert_ruler" class="block_elem" width="${Math.round(19 * window.devicePixelRatio)}" height="${Math.round(821 * window.devicePixelRatio)}"
+            style="left: 0px; top: 0px; width: 100%; height: 100%;"></canvas>`;
+        document.body.appendChild(divVertRuler);
+
+        var horRuler = new CHorRuler();
+        var verRuler = new CVerRuler();
+        horRuler.m_oWordControl = new CEditorPage({isMobileVersion: false});
+        verRuler.m_oWordControl = horRuler.m_oWordControl;
+
+        var cachedPage = {
+            width_mm: 210.0086111111111,
+            height_mm: 297.00361111111107,
+            margin_left: 30.00375,
+            margin_top: 20.002499999999998,
+            margin_right: 195.01555555555555,
+            margin_bottom: 277.0011111111111
+        };
+
+        horRuler.CreateBackground(cachedPage);
+        verRuler.CreateBackground(cachedPage);
+        var idHorRuler = document.getElementById('id_hor_ruler');
+        var idVertRuler = document.getElementById('id_vert_ruler');
+
+        horRuler.CheckCanvas();
+        verRuler.CheckCanvas();
+        horRuler.BlitToMain(0, 0, idHorRuler);
+        verRuler.BlitToMain(0, 0, idVertRuler);
+    }
+
+    createRulers();
+
+    window.onresize = function() {
+        if (document.getElementById("id_panel_top")) document.getElementById("id_panel_top").remove();
+        if (document.getElementById("id_panel_left")) document.getElementById("id_panel_left").remove();
+        createRulers();
+    }
+
+</script>
+</body>
+
+</html>
