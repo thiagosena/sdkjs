@@ -2520,8 +2520,8 @@ function CHorRuler()
             if ((-10000 != this.m_dIndentRight_old) && (this.m_dIndentRight_old != this.m_dIndentRight))
             {
                 dCenterX = left + (_margin_right -  this.m_dIndentRight_old) * dKoef_mm_to_pix;
-                var1 = parseInt(dCenterX - 1 * g_dKoef_mm_to_pix) - indent;
-                var4 = parseInt(dCenterX + 1 * g_dKoef_mm_to_pix) + indent;
+                var1 = parseInt(dCenterX - 1 * g_dKoef_mm_to_pix * dPR) - indent;
+                var4 = parseInt(dCenterX + 1 * g_dKoef_mm_to_pix * dPR) + indent;
 
                 context.beginPath();
                 context.lineWidth = Math.round(dPR);
