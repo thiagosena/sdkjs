@@ -237,108 +237,34 @@ function CHorRuler()
 
     this.Units = c_oAscDocumentUnits.Millimeter;
 
-    this.InitTablePict = function()
-    {
-        var _data = g_memory.ctx.createImageData(7, 8);
-        var _px = _data.data;
-        var is2 = false;
-
-        var black_level = 100;
-
-        for (var j = 0; j < 8; j++)
-        {
-            var ind = j * 4 * 7;
-            if (is2)
-            {
-                for (i = 0; i < 7; i++)
-                {
-                    _px[ind++] = black_level;
-                    _px[ind++] = black_level;
-                    _px[ind++] = black_level;
-                    _px[ind++] = 255;
-                }
-            }
-            else
-            {
-                var is22 = false;
-                for (var i = 0; i < 7; i++)
-                {
-                    if (is22)
-                    {
-                        _px[ind++] = black_level;
-                        _px[ind++] = black_level;
-                        _px[ind++] = black_level;
-                        _px[ind++] = 255;
-                    }
-                    else
-                    {
-                        _px[ind++] = 255;
-                        _px[ind++] = 255;
-                        _px[ind++] = 255;
-                        _px[ind++] = 255;
-                    }
-                    is22 = !is22;
-                }
-            }
-            is2 = !is2;
+    this.InitTablePict = function() {
+        var dPR = window.devicePixelRatio;
+        var roundDPR = Math.round(dPR);
+        // var roundDPR = ((dPR - Math.floor(dPR)) <= 0.5) ? Math.floor(dPR) : Math.round(dPR);
+        var ctx = g_memory.ctx;
+        ctx.canvas.width = 7 * roundDPR;
+        ctx.canvas.height = 8 * roundDPR;
+        ctx.beginPath();
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+        ctx.rect(0,0,ctx.canvas.width, ctx.canvas.height)
+        ctx.fill();
+        ctx.beginPath();
+        ctx.strokeStyle = '#646464';
+        ctx.lineWidth = roundDPR;
+        for (var i = 0; i < 7 * roundDPR; i += 2 * ctx.lineWidth) {
+            ctx.moveTo(0,  1.5 * ctx.lineWidth + i);
+            ctx.lineTo(7 * roundDPR, 1.5 * ctx.lineWidth + i);
+            ctx.stroke();
         }
-        return _data;
-    }
-
-    this.InitTablePict2 = function()
-    {
-        var _data = g_memory.ctx.createImageData(14, 16);
-        var _px = _data.data;
-
-        var black_level = 100;
-
-        for (var j = 0; j < 16; j++)
-        {
-            var ind = j * 4 * 14;
-            var is2 = j - ((j >> 2) << 2);
-
-            if (is2 >= 2)
-            {
-                for (i = 0; i < 14; i++)
-                {
-                    _px[ind++] = black_level;
-                    _px[ind++] = black_level;
-                    _px[ind++] = black_level;
-                    _px[ind++] = 255;
-                }
-            }
-            else
-            {
-                var is22 = false;
-                for (var i = 0; i < 7; i++)
-                {
-                    if (is22)
-                    {
-                        _px[ind++] = black_level;
-                        _px[ind++] = black_level;
-                        _px[ind++] = black_level;
-                        _px[ind++] = 255;
-                        _px[ind++] = black_level;
-                        _px[ind++] = black_level;
-                        _px[ind++] = black_level;
-                        _px[ind++] = 255;
-                    }
-                    else
-                    {
-                        _px[ind++] = 255;
-                        _px[ind++] = 255;
-                        _px[ind++] = 255;
-                        _px[ind++] = 255;
-                        _px[ind++] = 255;
-                        _px[ind++] = 255;
-                        _px[ind++] = 255;
-                        _px[ind++] = 255;
-                    }
-                    is22 = !is22;
-                }
-            }
+        for (var i = 0; i < 8 * roundDPR; i += 2 * ctx.lineWidth) {
+            ctx.moveTo(1.5 * ctx.lineWidth + i, 0);
+            ctx.lineTo(1.5 * ctx.lineWidth + i, 8 * roundDPR);
+            ctx.stroke();
         }
-        return _data;
+
+        return ctx.canvas;
     }
 
     this.CheckTableSprite = function(is_retina)
@@ -350,10 +276,10 @@ function CHorRuler()
             if (is_retina && this.tableSprite.width == 14)
                 return;
         }
-        if (!is_retina)
+        // if (!is_retina)
             this.tableSprite = this.InitTablePict();
-        else
-            this.tableSprite = this.InitTablePict2();
+        // else
+        //     this.tableSprite = this.InitTablePict2();
     }
 
     this.tableSprite = null;
@@ -373,7 +299,7 @@ function CHorRuler()
 
         var _width      = 10 + widthNew;
         if (dPR > 1)
-            _width += Math.ceil(5 * dPR);
+            _width += Math.ceil(6 * dPR);
 
         var _height     = 8 * g_dKoef_mm_to_pix * dPR;
 
@@ -517,8 +443,8 @@ function CHorRuler()
         var dKoef_mm_to_pix = g_dKoef_mm_to_pix * this.m_dZoom * dPR;
 
         // не править !!!
-        this.m_nTop     = 6 * dPR;//(1.8 * g_dKoef_mm_to_pix) >> 0;
-        this.m_nBottom  = 19 * dPR;//(5.2 * g_dKoef_mm_to_pix) >> 0;
+        this.m_nTop     = Math.round(6 * dPR);//(1.8 * g_dKoef_mm_to_pix) >> 0;
+        this.m_nBottom  = Math.round(19 * dPR);//(5.2 * g_dKoef_mm_to_pix) >> 0;
 
         var context = this.m_oCanvas.getContext('2d');
         context.setTransform(1, 0, 0, 1, Math.round(5 * dPR), 0);
@@ -884,19 +810,19 @@ function CHorRuler()
                 for (var i = 0; i <= _count; i++)
                 {
                     var __xID = 0;
-                        __xID = ((2.5 + _offset * dKoef_mm_to_pix) * dPR) >> 0;
+                        __xID = (-2.5 * dPR + _offset * dKoef_mm_to_pix) >> 0;
 
                     var __yID = this.m_nBottom - Math.round(10 * dPR);
 
                     if (0 == i)
                     {
-                        context.putImageData(this.tableSprite, __xID, __yID);
+                        context.drawImage(this.tableSprite, __xID, __yID);
                         _offset += markup.Cols[i];
                         continue;
                     }
                     if (i == _count)
                     {
-                        context.putImageData(this.tableSprite, __xID, __yID);
+                        context.drawImage(this.tableSprite, __xID, __yID);
                         break;
                     }
 
@@ -905,7 +831,7 @@ function CHorRuler()
 
                     context.fillRect(__x, this.m_nTop + indent, __r - __x, this.m_nBottom - this.m_nTop);
                     context.strokeRect(__x, this.m_nTop + indent, __r - __x, this.m_nBottom - this.m_nTop);
-                    context.putImageData(this.tableSprite, __xID, __yID);
+                    context.drawImage(this.tableSprite, __xID, __yID);
 
                     _offset += markup.Cols[i];
                 }
@@ -957,16 +883,18 @@ function CHorRuler()
                     context.strokeRect(__x, this.m_nTop + indent, __r - __x, this.m_nBottom - this.m_nTop);
 
                     if (!markup.EqualWidth)
-                        context.putImageData(this.tableSprite, __xID, __yID);
+                        context.drawImage(this.tableSprite, __xID, __yID);
 
                     if ((__r - __x) > 10)
                     {
                         context.fillStyle = GlobalSkin.RulerLight;
                         context.strokeStyle = "#81878F";
-                        context.fillRect(__x + Math.round(3 * dPR), this.m_nTop + indent + Math.round(3 * dPR), Math.round(3 * dPR), this.m_nBottom - this.m_nTop - Math.round(6 * dPR));
-                        context.fillRect(__r - Math.round(6 * dPR), this.m_nTop + indent + Math.round(3 * dPR), Math.round(3 * dPR), this.m_nBottom - this.m_nTop - Math.round(6 * dPR));
-                        context.strokeRect(__x + Math.round(3 * dPR), this.m_nTop + indent + Math.round(3 * dPR), Math.round(3 * dPR), this.m_nBottom - this.m_nTop - Math.round(6 * dPR));
-                        context.strokeRect(__r - Math.round(6 * dPR), this.m_nTop + indent + Math.round(3 * dPR), Math.round(3 * dPR), this.m_nBottom - this.m_nTop - Math.round(6 * dPR));
+                        var roundV1 = Math.round(3 * dPR);
+                        var roundV2 = Math.round(6 * dPR);
+                        context.fillRect(__x + roundV1, this.m_nTop + indent + roundV1, roundV1, this.m_nBottom - this.m_nTop - roundV2);
+                        context.fillRect(__r - roundV2, this.m_nTop + indent + roundV1, roundV1, this.m_nBottom - this.m_nTop - roundV2);
+                        context.strokeRect(__x + roundV1, this.m_nTop + indent + roundV1, roundV1, this.m_nBottom - this.m_nTop - roundV2);
+                        context.strokeRect(__r - roundV2, this.m_nTop + indent + roundV1, roundV1, this.m_nBottom - this.m_nTop - roundV2);
                         context.fillStyle = GlobalSkin.RulerDark;
                         context.strokeStyle = GlobalSkin.RulerOutline;
                     }
@@ -2805,7 +2733,7 @@ function CVerRuler()
 
         var _height      = 10 + heightNew;
         if (dPR > 1)
-            _height += Math.ceil(5 * dPR);
+            _height += Math.ceil(6 * dPR);
 
         var _width       = 5 * g_dKoef_mm_to_pix * dPR;
 
@@ -2904,8 +2832,8 @@ function CVerRuler()
         var dKoef_mm_to_pix = g_dKoef_mm_to_pix * this.m_dZoom * dPR;
 
         // не править !!!
-        this.m_nLeft   = 3 * dPR;//(0.8 * g_dKoef_mm_to_pix) >> 0;
-        this.m_nRight  = 15 * dPR;//(4.2 * g_dKoef_mm_to_pix) >> 0;
+        this.m_nLeft   = Math.round(3 * dPR);//(0.8 * g_dKoef_mm_to_pix) >> 0;
+        this.m_nRight  = Math.round(15 * dPR);//(4.2 * g_dKoef_mm_to_pix) >> 0;
 
         var context = this.m_oCanvas.getContext('2d');
         context.setTransform(1, 0, 0, 1, 0, Math.round(5 * dPR));
