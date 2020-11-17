@@ -3197,7 +3197,8 @@ function CVerRuler()
 
         if ((this.CurrentObjectType == RULER_OBJECT_TYPE_TABLE) && (null != markup))
         {
-            var dKoef_mm_to_pix = g_dKoef_mm_to_pix * this.m_dZoom;
+            var dPR = window.devicePixelRatio;
+            var dKoef_mm_to_pix = g_dKoef_mm_to_pix * this.m_dZoom * dPR;
 
             // не будет нулевых таблиц.
             var _count = markup.Rows.length;
@@ -3216,8 +3217,8 @@ function CVerRuler()
             for (var i = 1; i < _count; i++)
             {
                 end_dark = ((markup.Rows[i].Y * dKoef_mm_to_pix) >> 0) + indent;
-                context.fillRect(_x, start_dark, _w, Math.max(end_dark - start_dark, 7));
-                context.strokeRect(_x, start_dark, _w, Math.max(end_dark - start_dark, 7));
+                context.fillRect(_x, start_dark, _w, Math.max(end_dark - start_dark, Math.round(7 * dPR)));
+                context.strokeRect(_x, start_dark, _w, Math.max(end_dark - start_dark, Math.round(7 * dPR)));
 
                 start_dark = (((markup.Rows[i].Y + markup.Rows[i].H) * dKoef_mm_to_pix) >> 0) + indent;
             }
