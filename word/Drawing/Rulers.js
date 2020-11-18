@@ -271,15 +271,10 @@ function CHorRuler()
     {
         if (null != this.tableSprite)
         {
-            if (!is_retina && this.tableSprite.width == 7)
-                return;
-            if (is_retina && this.tableSprite.width == 14)
+            if (this.tableSprite.width == 7 * Math.round(window.devicePixelRatio))
                 return;
         }
-        // if (!is_retina)
             this.tableSprite = this.InitTablePict();
-        // else
-        //     this.tableSprite = this.InitTablePict2();
     }
 
     this.tableSprite = null;
