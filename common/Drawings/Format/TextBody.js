@@ -96,6 +96,7 @@ AscDFH.drawingsChangesMap[AscDFH.historyitem_TextBodySetBodyPr] =   function(oCl
         oClass.content.Recalc_AllParagraphs_CompiledPr();
     }
     oClass.bodyPr = value;
+    oClass.recalcInfo.recalculateBodyPr = true;
 };
 AscDFH.drawingsChangesMap[AscDFH.historyitem_TextBodySetContent] =  function(oClass, value){oClass.content = value;};
 AscDFH.drawingsChangesMap[AscDFH.historyitem_TextBodySetLstStyle] = function(oClass, value){oClass.lstStyle = value;};
@@ -115,6 +116,7 @@ function CTextBody()
     this.content2 = null;
     this.compiledBodyPr = null;
     this.parent = null;
+    this.bFit = true;
     this.recalcInfo =
     {
         recalculateBodyPr: true,
@@ -176,6 +178,14 @@ CTextBody.prototype =
             return this.parent;
         }
         return true;
+    },
+
+    IsInTable: function(bReturnTopTable)
+    {
+        if ( true === bReturnTopTable )
+            return null;
+
+        return false;
     },
 
     Get_Theme : function()
@@ -322,7 +332,7 @@ CTextBody.prototype =
         return this.parent && this.parent.Check_AutoFit && this.parent.Check_AutoFit(true) || false;
     },
 
-    Refresh_RecalcData: function()
+    Refresh_RecalcData: function(Data)
     {
         if(this.parent && this.parent.recalcInfo)
         {
@@ -333,6 +343,13 @@ CTextBody.prototype =
             if(this.parent.addToRecalculate)
             {
                 this.parent.addToRecalculate();
+            }
+        }
+        if(AscCommon.isRealObject(Data))
+        {
+            if(Data.Type === AscDFH.historyitem_TextBodySetBodyPr)
+            {
+                this.recalcInfo.recalculateBodyPr = true;
             }
         }
     },
@@ -371,6 +388,10 @@ CTextBody.prototype =
 
     Get_TextBackGroundColor: function()
     {
+        if(this.parent && this.parent.Get_TextBackGroundColor)
+        {
+            return this.parent.Get_TextBackGroundColor();
+        }
         return undefined;
     },
 
@@ -562,6 +583,56 @@ CTextBody.prototype =
     {
         this.parent && this.parent.Refresh_RecalcData2 && this.parent.Refresh_RecalcData2(pageIndex, this);
     },
+    checkContentFit: function(sText) {
+        var oContent = this.content;
+        if(!oContent.Is_Empty()) {
+            var oFirstPara = oContent.Content[0];
+            oFirstPara.Content = [oFirstPara.Content[oFirstPara.Content.length - 1]];
+        }
+        AscFormat.AddToContentFromString(oContent, sText);
+        AscFormat.CShape.prototype.recalculateContent.call(this.parent);
+        var oFirstParagraph = oContent.Content[0];
+        return oFirstParagraph.Lines.length === 1;
+    },
+    recalculateOneString: function(sText) {
+        if(this.checkContentFit(sText)) {
+
+            this.bFit = true;
+            return;
+        }
+        this.bFit = false;
+        var nLeftPos = 0, nRightPos = sText.length;
+        var nMiddlePos;
+        var sEnd = "...";
+        var sFitText = sText + sEnd;
+
+        while (nRightPos - nLeftPos > 1) {
+            nMiddlePos = (nRightPos + nLeftPos) / 2 + 0.5 >> 0;
+            sFitText = sText.slice(0, nMiddlePos - 1);
+            sFitText += sEnd;
+            if(!this.checkContentFit(sFitText)) {
+                nRightPos = nMiddlePos;
+            }
+            else {
+                nLeftPos = nMiddlePos;
+            }
+        }
+        sFitText = sText.slice(0, nLeftPos - 1);
+        sFitText += sEnd;
+        if(!this.checkContentFit(sFitText)) {
+            var bFound = false;
+            for(var i = sEnd.length - 1; i > -1; i--) {
+                sFitText = sEnd.slice(0, i);
+                if(this.checkContentFit(sFitText)) {
+                    bFound = true;
+                    break;
+                }
+            }
+            if(!bFound) {
+                this.checkContentFit("");
+            }
+        }
+    },
 
     getContentOneStringSizes: function()
     {
@@ -693,7 +764,7 @@ function CalculateReductionParams(oBodyPrHolder, oContent) {
 
     function CheckNeedRecalcAutoFit(oBP1, oBP2)
     {
-        if(window["NATIVE_EDITOR_ENJINE"] === true && window["IS_NATIVE_EDITOR"] !== true)
+        if(AscCommon.isFileBuild())
         {
             return false;
         }

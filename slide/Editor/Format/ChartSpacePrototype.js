@@ -41,7 +41,6 @@ CChartSpace.prototype.addToDrawingObjects =  CShape.prototype.addToDrawingObject
 CChartSpace.prototype.setDrawingObjects = CShape.prototype.setDrawingObjects;
 CChartSpace.prototype.setDrawingBase = CShape.prototype.setDrawingBase;
 CChartSpace.prototype.deleteDrawingBase = CShape.prototype.deleteDrawingBase;
-CChartSpace.prototype.setParent2 = CShape.prototype.setParent2;
 CChartSpace.prototype.getDrawingObjectsController = CShape.prototype.getDrawingObjectsController;
 CChartSpace.prototype.handleUpdateTheme = CShape.prototype.handleUpdateTheme;
 CChartSpace.prototype.getIsSingleBody = CShape.prototype.getIsSingleBody;
@@ -309,18 +308,11 @@ CChartSpace.prototype.handleUpdateLn = function()
 	this.recalcInfo.recalculateMarkers = true;
     this.addToRecalculate();
 };
-CChartSpace.prototype.canGroup = CShape.prototype.canGroup;
 CChartSpace.prototype.convertPixToMM = CShape.prototype.convertPixToMM;
 CChartSpace.prototype.getCanvasContext = CShape.prototype.getCanvasContext;
 CChartSpace.prototype.getHierarchy = CShape.prototype.getHierarchy;
 CChartSpace.prototype.getParentObjects = CShape.prototype.getParentObjects;
 CChartSpace.prototype.recalculateTransform = CShape.prototype.recalculateTransform;
-CChartSpace.prototype.canResize = CShape.prototype.canResize;
-CChartSpace.prototype.canMove = CShape.prototype.canMove;
-CChartSpace.prototype.canRotate = function()
-{
-    return false;
-};
 
 
 CChartSpace.prototype.createResizeTrack = CShape.prototype.createResizeTrack;

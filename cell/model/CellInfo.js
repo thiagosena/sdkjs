@@ -88,6 +88,7 @@
 		this.isAutoFilter = false;  // Кнопка автофильтр (также влияет на formatTable и Sort). Возможные состояния:
 		// - null - мы в пересечении с таблицой (но не полностью в ней)
 		// - true/false - когда мы полностью в таблице или вне ее (true/false в зависимости от того применен фильтр или нет)
+		this.isSlicerAdded = false;//добавлен флаг для особой ситуации - блокировать кнопку удалить фильтр с ф/т со срезом
 	}
 
 	asc_CAutoFilterInfo.prototype = {
@@ -99,6 +100,8 @@
 			return this.isAutoFilter;
 		}, asc_getIsApplyAutoFilter: function () {
 			return this.isApplyAutoFilter;
+		}, asc_getIsSlicerAdded: function () {
+			return this.isSlicerAdded;
 		}
 	};
 
@@ -281,7 +284,7 @@
 		this.Name = n;
 		this.LocalSheetId = s;
 		this.Ref = r;
-		this.isTable = t;
+		this.type = t;
 		this.Hidden = h;
 		this.isLock = l;
 		this.isXLNM = x;
@@ -298,8 +301,8 @@
 			return this.LocalSheetId;
 		}, asc_getRef: function () {
 			return this.Ref;
-		}, asc_getIsTable: function () {
-			return this.isTable;
+		}, asc_getType: function () {
+			return this.type;
 		}, asc_getIsHidden: function () {
 			return this.Hidden;
 		}, asc_getIsLock: function () {
@@ -355,6 +358,7 @@
 	prot["asc_getTableName"] = prot.asc_getTableName;
 	prot["asc_getIsAutoFilter"] = prot.asc_getIsAutoFilter;
 	prot["asc_getIsApplyAutoFilter"] = prot.asc_getIsApplyAutoFilter;
+	prot["asc_getIsSlicerAdded"] = prot.asc_getIsSlicerAdded;
 
 	window["AscCommonExcel"].asc_CFormatTableInfo = asc_CFormatTableInfo;
 	prot = asc_CFormatTableInfo.prototype;
@@ -408,7 +412,7 @@
 	prot["asc_getName"] = prot.asc_getName;
 	prot["asc_getScope"] = prot.asc_getScope;
 	prot["asc_getRef"] = prot.asc_getRef;
-	prot["asc_getIsTable"] = prot.asc_getIsTable;
+	prot["asc_getType"] = prot.asc_getType;
 	prot["asc_getIsHidden"] = prot.asc_getIsHidden;
 	prot["asc_getIsLock"] = prot.asc_getIsLock;
 	prot["asc_getIsXlnm"] = prot.asc_getIsXlnm;

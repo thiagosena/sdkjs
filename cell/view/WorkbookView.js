@@ -64,7 +64,7 @@
   var c_oAscAsyncAction = asc.c_oAscAsyncAction;
   var c_oAscFontRenderingModeType = asc.c_oAscFontRenderingModeType;
   var c_oAscAsyncActionType = asc.c_oAscAsyncActionType;
-  
+
   var g_clipboardExcel = AscCommonExcel.g_clipboardExcel;
 
 
@@ -81,17 +81,16 @@
   };
 
   function WorksheetViewSettings() {
+    //TODO темные цвета необходимо скорректировать
     this.header = {
       style: [// Header colors
         { // kHeaderDefault
-          background: new CColor(241, 241, 241), border: new CColor(213, 213, 213), color: new CColor(54, 54, 54)
-        }, { // kHeaderActive
-          background: new CColor(193, 193, 193), border: new CColor(146, 146, 146), color: new CColor(54, 54, 54)
-        }, { // kHeaderHighlighted
-          background: new CColor(223, 223, 223), border: new CColor(175, 175, 175), color: new CColor(101, 106, 112)
-        }, { // kHeaderSelected
-          background: new CColor(170, 170, 170), border: new CColor(117, 119, 122), color: new CColor(54, 54, 54)
-        }], cornerColor: new CColor(193, 193, 193)
+          background: new CColor(241, 241, 241), border: new CColor(213, 213, 213), color: new CColor(54, 54, 54),
+            backgroundDark: new CColor(0, 0, 0), colorDark: new CColor(255, 255, 255)}, { // kHeaderActive
+          background: new CColor(193, 193, 193), border: new CColor(146, 146, 146), color: new CColor(54, 54, 54),
+            backgroundDark: new CColor(0, 0, 0), colorDark: new CColor(255, 255, 255)}, { // kHeaderHighlighted
+          background: new CColor(223, 223, 223), border: new CColor(175, 175, 175), color: new CColor(101, 106, 112),
+            backgroundDark: new CColor(0, 0, 0), colorDark: new CColor(255, 255, 255)}], cornerColor: new CColor(193, 193, 193)
     };
     this.cells = {
       defaultState: {
@@ -176,6 +175,8 @@
     this.lockDraw = false;		// Lock отрисовки на некоторое время
 
     this.isCellEditMode = false;
+    this.isFormulaEditMode = false;
+    this.isWizardMode = false;
 
 	  this.isShowComments = true;
 	  this.isShowSolved = true;
@@ -216,12 +217,14 @@
     this.trackOverlay = null;
     this.autoShapeTrack = null;
 
-    this.stateFormatPainter = c_oAscFormatPainterState.kOff;
-    this.rangeFormatPainter = null;
+    this.formatPainterState = c_oAscFormatPainterState.kOff;
+    this.formatPainterRange = null;
+    this.formatPainterSheet = null;
 
-    this.selectionDialogType = c_oAscSelectionDialogType.None;
+    this.selectionDialogMode = false;
+    this.dialogAbsName = false;
+    this.dialogSheetName = false;
     this.copyActiveSheet = -1;
-    this.lastActiveSheet = -1;
 
     // Комментарии для всего документа
     this.cellCommentator = null;
@@ -321,6 +324,10 @@
 		  this.controller.init(this, this.element, /*this.canvasOverlay*/ this.canvasGraphicOverlay, /*handlers*/{
 			  "resize": function () {
 				  self.resize.apply(self, arguments);
+			  }, "gotFocus": function (hasFocus) {
+				  if (self.isCellEditMode) {
+					  self.cellEditor.setFocus(!hasFocus);
+				  }
 			  }, "initRowsCount": function () {
 				  self._onInitRowsCount.apply(self, arguments);
 			  }, "initColsCount": function () {
@@ -358,27 +365,11 @@
 			  }, "editCell": function () {
 				  self._onEditCell.apply(self, arguments);
 			  }, "stopCellEditing": function () {
-				  return self._onStopCellEditing.apply(self, arguments);
-			  }, "getCellEditMode": function () {
-				  return self.isCellEditMode;
-			  }, "canEdit": function () {
-				  return self.Api.canEdit();
+				  return self.closeCellEditor.apply(self, arguments);
 			  }, "isRestrictionComments": function () {
 				  return self.Api.isRestrictionComments();
 			  }, "empty": function () {
 				  self._onEmpty.apply(self, arguments);
-			  }, "canEnterCellRange": function () {
-				  self.cellEditor.setFocus(false);
-				  var ret = self.cellEditor.canEnterCellRange();
-				  ret ? self.cellEditor.activateCellRange() : true;
-				  return ret;
-			  }, "enterCellRange": function () {
-				  self.lockDraw = true;
-				  self.skipHelpSelector = true;
-				  self.cellEditor.setFocus(false);
-				  self.getWorksheet().enterCellRange(self.cellEditor);
-				  self.skipHelpSelector = false;
-				  self.lockDraw = false;
 			  }, "undo": function () {
 				  self.undo.apply(self, arguments);
 			  }, "redo": function () {
@@ -402,11 +393,15 @@
 			  }, "print": function () {
 				  self.Api.onPrint();
 			  }, "addFunction": function () {
-				  self.insertFormulaInEditor.apply(self, arguments);
+				  self.insertInCellEditor.apply(self, arguments);
 			  }, "canvasClick": function () {
 				  self.enableKeyEventsHandler(true);
 			  }, "autoFiltersClick": function () {
 				  self._onAutoFiltersClick.apply(self, arguments);
+			  }, "tableTotalClick": function () {
+				  self._onTableTotalClick.apply(self, arguments);
+			  }, "pivotFiltersClick": function () {
+				  self._onPivotFiltersClick.apply(self, arguments);
 			  }, "commentCellClick": function () {
 				  self._onCommentCellClick.apply(self, arguments);
 			  }, "isGlobalLockEditCell": function () {
@@ -417,7 +412,10 @@
 				  self._onStopFormatPainter.apply(self, arguments);
 			  }, "groupRowClick": function () {
 				  return self._onGroupRowClick.apply(self, arguments);
+			  }, "onChangeTableSelection": function () {
+				  return self._onChangeTableSelection.apply(self, arguments);
 			  },
+
 
 			  // Shapes
 			  "graphicObjectMouseDown": function () {
@@ -434,6 +432,8 @@
 				  return self._onGraphicObjectWindowKeyUp.apply(self, arguments);
 			  }, "graphicObjectWindowKeyPress": function () {
 				  return self._onGraphicObjectWindowKeyPress.apply(self, arguments);
+			  }, "graphicObjectMouseWheel": function () {
+				  return self._onGraphicObjecMouseWheel.apply(self, arguments);
 			  }, "getGraphicsInfo": function () {
 				  return self._onGetGraphicsInfo.apply(self, arguments);
 			  }, "updateSelectionShape": function () {
@@ -468,7 +468,7 @@
 
 			  // FormatPainter
 			  'isFormatPainter': function () {
-				  return self.stateFormatPainter;
+				  return self.formatPainterState;
 			  },
 
 			  //calculate
@@ -480,7 +480,7 @@
 				  var table = self.getSelectionInfo().formatTableInfo;
 				  return table && self.changeFormatTableInfo(table.tableName, Asc.c_oAscChangeTableStyleInfo.rowTotal, !table.lastRow);
 			  },
-			  
+
 			  //special paste
 			  "hideSpecialPasteOptions": function () {
 				  self.handlers.trigger("hideSpecialPasteOptions");
@@ -490,14 +490,15 @@
       if (this.input && this.input.addEventListener) {
         this.input.addEventListener("focus", function () {
           self.input.isFocused = true;
-          if (!self.Api.canEdit()) {
+          if (!self.canEdit()) {
             return;
           }
           self._onStopFormatPainter();
-          self.controller.setStrictClose(true);
           self.cellEditor.callTopLineMouseup = true;
           if (!self.getCellEditMode() && !self.controller.isFillHandleMode) {
-            self._onEditCell(/*isFocus*/true);
+            var enterOptions = new AscCommonExcel.CEditorEnterOptions();
+            enterOptions.focus = true;
+            self._onEditCell(enterOptions);
           }
         }, false);
 
@@ -539,7 +540,10 @@
         }
 
         if (!self.isCellEditMode) {
-          self._onEditCell(false, true, undefined, true, function () {
+          var enterOptions = new AscCommonExcel.CEditorEnterOptions();
+          enterOptions.newText = '';
+          enterOptions.quickInput = true;
+          self._onEditCell(enterOptions, function () {
             self.cellEditor.Begin_CompositeInput();
           });
         } else {
@@ -618,7 +622,7 @@
       	}
 
       	if (!self.isCellEditMode) {
-      		self._onEditCell(undefined, undefined, undefined, false, function () {
+      		self._onEditCell(new AscCommonExcel.CEditorEnterOptions(), function () {
 				self.cellEditor.setTextStyle('fn', familyName);
 				self.cellEditor._addCharCodes(arrCharCodes);
 			});
@@ -648,7 +652,9 @@
 
 
       AscCommon.InitBrowserInputContext(this.Api, "id_target_cursor");
-      this.model.dependencyFormulas.calcTree();
+      AscCommonExcel.executeInR1C1Mode(false, function () {
+          self.model.dependencyFormulas.calcTree();
+      });
     }
 
 	  this.cellEditor =
@@ -660,71 +666,54 @@
 				  self._onUpdateCellEditor.apply(self, arguments);
 			  }, "gotFocus": function (hasFocus) {
 				  self.controller.setFocus(!hasFocus);
-			  }, "updateFormulaEditMod": function () {
-				  self.controller.setFormulaEditMode.apply(self.controller, arguments);
-				  var ws = self.getWorksheet();
-				  if (ws) {
-					  if (!self.lockDraw) {
-						  ws.cleanSelection();
-					  }
-					  for (var i in self.wsViews) {
-						  self.wsViews[i].cleanFormulaRanges();
-					  }
-//            ws.cleanFormulaRanges();
-					  ws.setFormulaEditMode.apply(ws, arguments);
-				  }
+			  }, "updateFormulaEditMod": function (val) {
+                  self.setFormulaEditMode(val);
 			  }, "updateEditorState": function (state) {
 				  self.handlers.trigger("asc_onEditCell", state);
-			  }, "isGlobalLockEditCell": function () {
+			  }, "updateTopLine": function (state) {
+                  // Implemented through asc_onEditCell
+                  self.handlers.trigger("asc_onEditCell", state);
+              }, "isGlobalLockEditCell": function () {
 				  return self.collaborativeEditing.getGlobalLockEditCell();
-			  }, "updateFormulaEditModEnd": function () {
-				  if (!self.lockDraw) {
-					  self.getWorksheet().updateSelection();
+			  }, "onMouseDown": function (event) {
+			  	return self.controller._onMouseDown(event);
+			  }, "newRanges": function (ranges) {
+			      if (self.isActive()) {
+			          var ws = self.getWorksheet();
+			          ws.cleanSelection();
+			          ws.oOtherRanges = ranges;
+			          ws._drawSelection();
 				  }
-			  }, "newRange": function (range, ws) {
-				  if (!ws) {
-					  self.getWorksheet().addFormulaRange(range);
-				  } else {
-					  self.getWorksheet(self.model.getWorksheetIndexByName(ws)).addFormulaRange(range);
-				  }
-			  }, "existedRange": function (range, ws) {
-				  var editRangeSheet = ws ? self.model.getWorksheetIndexByName(ws) : self.lastActiveSheet;
-				  if (-1 === editRangeSheet || editRangeSheet === self.wsActive) {
-					  self.getWorksheet().activeFormulaRange(range);
-				  } else {
-					  self.getWorksheet(editRangeSheet).removeFormulaRange(range);
-					  self.getWorksheet().addFormulaRange(range);
-				  }
-			  }, "updateUndoRedoChanged": function (bCanUndo, bCanRedo) {
+			  }, "cleanSelectRange": function () {
+			      self._onCleanSelectRange();
+              }, "updateUndoRedoChanged": function (bCanUndo, bCanRedo) {
 				  self.handlers.trigger("asc_onCanUndoChanged", bCanUndo);
 				  self.handlers.trigger("asc_onCanRedoChanged", bCanRedo);
 			  }, "applyCloseEvent": function () {
 				  self.controller._onWindowKeyDown.apply(self.controller, arguments);
 			  }, "canEdit": function () {
-				  return self.Api.canEdit();
+				  return self.canEdit();
 			  }, "getFormulaRanges": function () {
-				  return (self.cellFormulaEnterWSOpen || self.getWorksheet()).getFormulaRanges();
+			      return self.isActive() ? self.getWorksheet().oOtherRanges : null;
 			  }, "isActive": function () {
 				  return self.isActive();
-			  }, "getCellFormulaEnterWSOpen": function () {
-				  return self.cellFormulaEnterWSOpen;
-			  }, "getActiveWS": function () {
-				  return self.getWorksheet().model;
-			  }, "setStrictClose": function (val) {
-				  self.controller.setStrictClose(val);
+			  }, "getWizard": function () {
+			      return self.isWizardMode;
+              }, "getActiveWS": function () {
+			      return self.getActiveWS();
 			  }, "updateEditorSelectionInfo": function (xfs) {
 				  self.handlers.trigger("asc_onEditorSelectionChanged", xfs);
 			  }, "onContextMenu": function (event) {
 				  self.handlers.trigger("asc_onContextMenu", event);
 			  }, "updatedEditableFunction": function (fName) {
 				  self.handlers.trigger("asc_onFormulaInfo", fName);
-			  }
+			  }, "onSelectionEnd" : function () {
+				  self.handlers.trigger("asc_onSelectionEnd");
+        }
 		  }, this.defaults.worksheetView.cells.padding);
 
 	  this.wsViewHandlers = new AscCommonExcel.asc_CHandlersList(/*handlers*/{
-		  "canEdit": function () {
-			  return self.Api.canEdit();
-		  }, "getViewMode": function () {
+		  "getViewMode": function () {
 			  return self.Api.getViewMode();
 		  }, "isRestrictionComments": function () {
 			  return self.Api.isRestrictionComments();
@@ -746,13 +735,11 @@
 		  }, "setAutoFiltersDialog": function (arrVal) {
 			  self.handlers.trigger("asc_onSetAFDialog", arrVal);
 		  }, "selectionRangeChanged": function (val) {
-			  self.handlers.trigger("asc_onSelectionRangeChanged", val);
+		      self._onSelectionRangeChanged(val);
 		  }, "onRenameCellTextEnd": function (countFind, countReplace) {
 			  self.handlers.trigger("asc_onRenameCellTextEnd", countFind, countReplace);
 		  }, 'onStopFormatPainter': function () {
-			  self._onStopFormatPainter();
-		  }, 'getRangeFormatPainter': function () {
-			  return self.rangeFormatPainter;
+              self._onStopFormatPainter.apply(self, arguments);
 		  }, "onDocumentPlaceChanged": function () {
 			  self._onDocumentPlaceChanged();
 		  }, "updateSheetViewSettings": function () {
@@ -763,8 +750,6 @@
 			  return self.defNameAllowCreate;
 		  }, 'isActive': function () {
 			  return self.isActive();
-		  }, "getCellEditMode": function () {
-			  return self.isCellEditMode;
 		  }, "drawMobileSelection": function (color) {
 			  if (self.MobileTouchManager) {
 				  self.MobileTouchManager.CheckSelect(self.trackOverlay, color);
@@ -784,6 +769,13 @@
 			  return self.mainGraphics;
 		  }, "cleanCutData": function (bDrawSelection, bCleanBuffer) {
 			  self.cleanCutData(bDrawSelection, bCleanBuffer);
+		  }
+	  });
+
+	  this.model.handlers.add("changeSheetViewSettings", function (wsId, type) {
+		  var ws = self.getWorksheetById(wsId, true);
+		  if (ws) {
+			  ws._onChangeSheetViewSettings(type);
 		  }
 	  });
 
@@ -814,9 +806,6 @@
     });
     this.model.handlers.add("setSelectionState", function() {
       self._onSetSelectionState.apply(self, arguments);
-    });
-    this.model.handlers.add("reInit", function() {
-      self.reInit.apply(self, arguments);
     });
     this.model.handlers.add("drawWS", function() {
       self.drawWS.apply(self, arguments);
@@ -941,12 +930,34 @@
     return new AscCommonExcel.WorksheetView(this, wsModel, this.wsViewHandlers, this.buffers, this.stringRender, this.maxDigitWidth, this.collaborativeEditing, this.defaults.worksheetView);
   };
 
-  WorkbookView.prototype._onSelectionNameChanged = function(name) {
+  WorkbookView.prototype._onSelectionNameChanged = function (name) {
     this.handlers.trigger("asc_onSelectionNameChanged", name);
   };
 
-  WorkbookView.prototype._onSelectionMathInfoChanged = function(info) {
+  WorkbookView.prototype._onSelectionMathInfoChanged = function (info) {
     this.handlers.trigger("asc_onSelectionMathChanged", info);
+  };
+
+  WorkbookView.prototype._onSelectionRangeChanged = function (val) {
+      if (this.isFormulaEditMode && !this.isWizardMode) {
+          this.skipHelpSelector = true;
+          this.cellEditor.changeCellText(val);
+          this.skipHelpSelector = false;
+      }
+      this.handlers.trigger("asc_onSelectionRangeChanged", val);
+  };
+
+  WorkbookView.prototype._onCleanSelectRange = function (force) {
+      if (this.selectionDialogMode) {
+          var ws = this.getWorksheet();
+          if (ws.model.selectionRange || force) {
+              ws.cleanSelection();
+              ws.model.selectionRange = null;
+			  if (this.isActive()) {
+				  ws._drawSelection();
+			  }
+          }
+      }
   };
 
   // Проверяет, сменили ли мы диапазон (для того, чтобы не отправлять одинаковую информацию о диапазоне)
@@ -959,16 +970,22 @@
   };
 
   WorkbookView.prototype._updateSelectionInfo = function () {
-    var ws = this.cellFormulaEnterWSOpen ? this.cellFormulaEnterWSOpen : this.getWorksheet();
+    if (this.selectionDialogMode) {
+      return false;
+    }
+    var ws = this.getWorksheet();
     this.oSelectionInfo = ws.getSelectionInfo();
     this.lastSendInfoRange = ws.model.selectionRange.clone();
     this.lastSendInfoRangeIsSelectOnShape = ws.getSelectionShape();
+    return true;
   };
   WorkbookView.prototype._onWSSelectionChanged = function(isSaving) {
-    this._updateSelectionInfo();
+    if (!this._updateSelectionInfo()) {
+      return;
+    }
 
     // При редактировании ячейки не нужно пересылать изменения
-    if (this.input && false === this.getCellEditMode() && c_oAscSelectionDialogType.None === this.selectionDialogType) {
+    if (this.input && !this.getCellEditMode()) {
       // Сами запретим заходить в строку формул, когда выделен shape
       if (this.lastSendInfoRangeIsSelectOnShape) {
         this.input.disabled = true;
@@ -1074,28 +1091,42 @@
     }
   };
 
-  WorkbookView.prototype._onChangeSelection = function (isStartPoint, dc, dr, isCoord, isCtrl, callback) {
-    var ws = this.getWorksheet();
-    var t = this;
-    var d = isStartPoint ? ws.changeSelectionStartPoint(dc, dr, isCoord, isCtrl) :
-      ws.changeSelectionEndPoint(dc, dr, isCoord, isCoord && this.keepType);
-    if (!isCoord && !isStartPoint) {
-      // Выделение с зажатым shift
-      this.canUpdateAfterShiftUp = true;
-    }
-    this.keepType = isCoord;
-    if (isCoord && !this.timerEnd && this.timerId === null) {
-    	this.timerId = setTimeout(function () {
-    		var arrClose = [];
-    		arrClose.push(new asc_CMM({type: c_oAscMouseMoveType.None}));
-    		t.handlers.trigger("asc_onMouseMove", arrClose);
-    		t._onUpdateCursor(AscCommonExcel.kCurCells);
-    		t.timerId = null;
-    		t.timerEnd = true;
-    		},1000);
-    }
-    asc_applyFunction(callback, d);
-  };
+    WorkbookView.prototype._onChangeSelection = function (isStartPoint, dc, dr, isCoord, isCtrl, callback) {
+        if (!this._checkStopCellEditorInFormulas()) {
+            return;
+        }
+
+        var ws = this.getWorksheet();
+        if (this.selectionDialogMode && !ws.model.selectionRange) {
+            if (isCoord) {
+                ws.model.selectionRange = new AscCommonExcel.SelectionRange(ws.model);
+                isStartPoint = true;
+            } else {
+                ws.model.selectionRange = ws.model.copySelection.clone();
+            }
+        }
+
+        var t = this;
+        var d = isStartPoint ? ws.changeSelectionStartPoint(dc, dr, isCoord, isCtrl) :
+            ws.changeSelectionEndPoint(dc, dr, isCoord, isCoord && this.keepType);
+        if (!isCoord && !isStartPoint) {
+            // Выделение с зажатым shift
+            this.canUpdateAfterShiftUp = true;
+        }
+        this.keepType = isCoord;
+        if (isCoord && !this.timerEnd && this.timerId === null) {
+            this.timerId = setTimeout(function () {
+                var arrClose = [];
+                arrClose.push(new asc_CMM({type: c_oAscMouseMoveType.None}));
+                t.handlers.trigger("asc_onMouseMove", arrClose);
+                t._onUpdateCursor(AscCommonExcel.kCurCells);
+                t.timerId = null;
+                t.timerEnd = true;
+            }, 1000);
+        }
+
+        asc_applyFunction(callback, d);
+    };
 
   // Окончание выделения
   WorkbookView.prototype._onChangeSelectionDone = function(x, y, event) {
@@ -1104,10 +1135,10 @@
 		this.timerId = null;
 	}
   	this.keepType = false;
-    if (c_oAscSelectionDialogType.None !== this.selectionDialogType) {
+    if (this.selectionDialogMode) {
       return;
     }
-    var isStateFormatPainter = this.stateFormatPainter;
+    var formatPainterState = this.formatPainterState;
     var ws = this.getWorksheet();
     ws.changeSelectionDone();
     this._onSelectionNameChanged(ws.getSelectionName(/*bRangeText*/false));
@@ -1124,7 +1155,7 @@
 
     var ct = ws.getCursorTypeFromXY(x, y);
 
-    if (c_oTargetType.Hyperlink === ct.target && !this.controller.isFormulaEditMode && !isStateFormatPainter) {
+    if (c_oTargetType.Hyperlink === ct.target && !this.isFormulaEditMode && !formatPainterState) {
       // Проверим замерженность
       var isHyperlinkClick = false;
      if(isSelectOnShape) {
@@ -1263,19 +1294,32 @@
 
 		// проверяем фильтр
 		if (ct.target === c_oTargetType.FilterObject) {
-			if (ct.isPivot) {
-				//необходимо сгенерировать объект AutoFiltersOptions
+			var filterObj;
+			if (ct.idPivot) {
+				filterObj = ws.pivot_setDialogProp(ct.idPivot);
 			} else {
-				var filterObj = ws.af_setDialogProp(ct.idFilter, true);
-				if(filterObj) {
-					arrMouseMoveObjects.push(new asc_CMM({
-						type: c_oAscMouseMoveType.Filter,
-						x: AscCommon.AscBrowser.convertToRetinaValue(x),
-						y: AscCommon.AscBrowser.convertToRetinaValue(y),
-						filter: filterObj
-					}));
-				}
+				filterObj = ws.af_setDialogProp(ct.idFilter, true);
 			}
+			if(filterObj) {
+				arrMouseMoveObjects.push(new asc_CMM({
+					type: c_oAscMouseMoveType.Filter,
+					x: AscCommon.AscBrowser.convertToRetinaValue(x),
+					y: AscCommon.AscBrowser.convertToRetinaValue(y),
+					filter: filterObj
+				}));
+			}
+		}
+
+		// check shape
+		if (ct.target === c_oTargetType.Shape) {
+		    if(typeof ct.tooltip === "string" && ct.tooltip.length > 0) {
+                arrMouseMoveObjects.push(new asc_CMM({
+                    type: c_oAscMouseMoveType.Tooltip,
+                    x: AscCommon.AscBrowser.convertToRetinaValue(x),
+                    y: AscCommon.AscBrowser.convertToRetinaValue(y),
+                    tooltip: ct.tooltip
+                }));
+            }
 		}
 
       /* Проверяем, может мы на никаком объекте (такая схема оказалась приемлимой
@@ -1301,7 +1345,7 @@
     }
     asc_applyFunction(callback, ct);
   };
-  
+
   WorkbookView.prototype._onUpdateCursor = function (cursor) {
   	var newHtmlCursor = AscCommon.g_oHtmlCursor.value(cursor);
   	if (this.element.style.cursor !== newHtmlCursor) {
@@ -1377,9 +1421,9 @@
     asc_applyFunction(callback, d);
   };
 
-  WorkbookView.prototype._onMoveResizeRangeHandleDone = function(target) {
+  WorkbookView.prototype._onMoveResizeRangeHandleDone = function() {
     var ws = this.getWorksheet();
-    ws.applyMoveResizeRangeHandle(target);
+    ws.applyMoveResizeRangeHandle();
   };
 
   // Frozen anchor
@@ -1404,8 +1448,42 @@
     this.getWorksheet().af_setDialogProp(idFilter);
   };
 
+  WorkbookView.prototype._onTableTotalClick = function(idTableTotal) {
+      var ws = this.getWorksheet();
+      if (idTableTotal) {
+          var _table = ws.model.TableParts ? ws.model.TableParts[idTableTotal.id] : null;
+          if (_table) {
+            var _tableColumn = _table.TableColumns[idTableTotal.colId];
+            if (_tableColumn) {
+                var val = _tableColumn.TotalsRowFunction;
+                if (null === val) {
+                    val = Asc.ETotalsRowFunction.totalrowfunctionNone;
+                }
+                this.handlers.trigger("asc_onTableTotalMenu", val);
+            }
+          }
+      }
+  };
+
+  WorkbookView.prototype._onPivotFiltersClick = function(idPivot) {
+    var filterObj = this.getWorksheet().pivot_setDialogProp(idPivot);
+    if (filterObj) {
+      this.handlers.trigger("asc_onSetAFDialog", filterObj);
+    }
+  };
+
   WorkbookView.prototype._onGroupRowClick = function(x, y, target, type) {
   	return this.getWorksheet().groupRowClick(x, y, target, type);
+  };
+
+  WorkbookView.prototype._onChangeTableSelection = function(target) {
+      var ws = this.getWorksheet();
+      if (ws && ws.model && target) {
+          var table = ws.model.TableParts[target.tableIndex];
+          if (table) {
+              ws.changeTableSelection(table.DisplayName, target.type, target.row, target.col);
+          }
+      }
   };
 
   WorkbookView.prototype._onCommentCellClick = function(x, y) {
@@ -1420,9 +1498,9 @@
     }
   };
 
-  WorkbookView.prototype._onStopFormatPainter = function() {
-    if (this.stateFormatPainter) {
-      this.formatPainter(c_oAscFormatPainterState.kOff);
+  WorkbookView.prototype._onStopFormatPainter = function (bLockDraw) {
+    if (this.formatPainterState) {
+      this.formatPainter(c_oAscFormatPainterState.kOff, bLockDraw);
     }
   };
 
@@ -1466,6 +1544,13 @@
     var objectRender = this.getWorksheet().objectRender;
     return (0 < objectRender.getSelectedGraphicObjects().length) ? objectRender.graphicObjectKeyPress(e) : false;
   };
+  WorkbookView.prototype._onGraphicObjecMouseWheel = function(deltaX, deltaY) {
+    var objectRender = this.getWorksheet().objectRender;
+      if(objectRender && objectRender.controller) {
+          return objectRender.controller.onMouseWheel(deltaX, deltaY);
+      }
+    return false;
+  };
 
   WorkbookView.prototype._onGetGraphicsInfo = function(x, y) {
     var ws = this.getWorksheet();
@@ -1478,7 +1563,7 @@
   };
 
   // Double click
-  WorkbookView.prototype._onMouseDblClick = function(x, y, isHideCursor, callback) {
+  WorkbookView.prototype._onMouseDblClick = function(x, y, event, callback) {
     var ws = this.getWorksheet();
     var ct = ws.getCursorTypeFromXY(x, y);
 
@@ -1490,12 +1575,8 @@
       }
       asc_applyFunction(callback);
     } else {
-      if (ct.col >= 0 && ct.row >= 0) {
-        this.controller.setStrictClose(!ws._isCellNullText(ct.col, ct.row));
-      }
-
       // In view mode or click on column | row | all | frozenMove | drawing object do not process
-      if (!this.Api.canEdit() || c_oTargetType.ColumnHeader === ct.target || c_oTargetType.RowHeader === ct.target ||
+      if (!this.canEdit() || c_oTargetType.ColumnHeader === ct.target || c_oTargetType.RowHeader === ct.target ||
 		  c_oTargetType.Corner === ct.target || c_oTargetType.FrozenAnchorH === ct.target ||
 		  c_oTargetType.FrozenAnchorV === ct.target || ws.objectRender.checkCursorDrawingObject(x, y)) {
         asc_applyFunction(callback);
@@ -1503,7 +1584,10 @@
       }
 
       // При dbl клике фокус выставляем в зависимости от наличия текста в ячейке
-      this._onEditCell(/*isFocus*/undefined, /*isClearCell*/undefined, /*isHideCursor*/isHideCursor, /*isQuickInput*/false);
+      var enterOptions = new AscCommonExcel.CEditorEnterOptions();
+      enterOptions.focus = null;
+      enterOptions.eventPos = event;
+      this._onEditCell(enterOptions);
     }
   };
 
@@ -1514,7 +1598,7 @@
 		}
 	};
 
-  WorkbookView.prototype._onEditCell = function(isFocus, isClearCell, isHideCursor, isQuickInput, callback) {
+  WorkbookView.prototype._onEditCell = function (enterOptions, callback) {
     var t = this;
 
     // Проверка глобального лока
@@ -1535,23 +1619,17 @@
     var editFunction = function() {
       t.setCellEditMode(true);
       t.hideSpecialPasteButton();
-      ws.openCellEditor(t.cellEditor, /*cursorPos*/undefined, isFocus, isClearCell,
-        /*isHideCursor*/isHideCursor, /*isQuickInput*/isQuickInput, selectionRange);
+      ws.openCellEditor(t.cellEditor, enterOptions, selectionRange);
       t.input.disabled = false;
 
       t.Api.cleanSpelling(true);
 
-      // Эвент на обновление состояния редактора
-      t.cellEditor._updateEditorState();
       asc_applyFunction(callback, true);
     };
 
     var editLockCallback = function(res) {
       if (!res) {
         t.setCellEditMode(false);
-        t.controller.setStrictClose(false);
-        t.controller.setFormulaEditMode(false);
-        ws.setFormulaEditMode(false);
         t.input.disabled = true;
 
         // Выключаем lock для редактирования ячейки
@@ -1568,44 +1646,29 @@
     }
   };
 
-  WorkbookView.prototype._onStopCellEditing = function(cancel) {
-    return this.cellEditor.close(!cancel);
+  WorkbookView.prototype._checkStopCellEditorInFormulas = function() {
+	  if (this.isCellEditMode && this.isFormulaEditMode && this.cellEditor.canEnterCellRange()) {
+		  return true;
+	  }
+      return this.closeCellEditor();
   };
 
   WorkbookView.prototype._onCloseCellEditor = function() {
     var isCellEditMode = this.getCellEditMode();
     this.setCellEditMode(false);
-    this.controller.setStrictClose(false);
-    this.controller.setFormulaEditMode(false);
-
-    if (-1 !== this.copyActiveSheet) {
-    	var index = this.copyActiveSheet;
-    	this.cellFormulaEnterWSOpen = null;
-    	this.copyActiveSheet = -1;
-    	if (index !== this.wsActive) {
-    		this.showWorksheet(index);
-    	}
-     }
-
-	  var ws = this.getWorksheet();
-	  ws.cleanSelection();
-
-	  for (var i in this.wsViews) {
-		  this.wsViews[i].setFormulaEditMode(false);
-		  this.wsViews[i].cleanFormulaRanges();
-	  }
-
-	  ws.updateSelectionWithSparklines();
 
     if (isCellEditMode) {
-      this.handlers.trigger("asc_onEditCell", Asc.c_oAscCellEditorState.editEnd);
+      if (window['IS_NATIVE_EDITOR']) {
+          window["native"]["closeCellEditor"]();
+      }
     }
 
     // Обновляем состояние Undo/Redo
-    if (!this.cellEditor.getMenuEditorMode()) {
-    	History._sendCanUndoRedo();
-    }
+    History._sendCanUndoRedo();
 
+    var ws = this.getWorksheet();
+    ws.cleanSelection();
+    ws.updateSelectionWithSparklines();
     // Обновляем состояние информации
     this._onWSSelectionChanged();
 
@@ -1647,7 +1710,7 @@
 
   WorkbookView.prototype._onSetFontAttributes = function(prop) {
     var val;
-    var xfs = this.getWorksheet().getSelectionInfo().asc_getXfs();
+    var xfs = this.getSelectionInfo().asc_getXfs();
     switch (prop) {
       case "b":
         val = !(xfs.asc_getFontBold());
@@ -1697,7 +1760,10 @@
   };
 
   WorkbookView.prototype.getCellStyles = function(width, height) {
-  	return AscCommonExcel.generateStyles(width, height, this.model.CellStyles, this);
+  	return AscCommonExcel.generateCellStyles(width, height, this);
+  };
+  WorkbookView.prototype.getSlicerStyles = function() {
+      return AscCommonExcel.generateSlicerStyles(36, 49, this);
   };
 
   WorkbookView.prototype.getWorksheetById = function(id, onlyExist) {
@@ -1706,6 +1772,10 @@
       return this.getWorksheet(wsModel.getIndex(), onlyExist);
     }
     return null;
+  };
+
+  WorkbookView.prototype.getActiveWS = function () {
+      return this.model.getWorksheet(-1 === this.copyActiveSheet ? this.wsActive : this.copyActiveSheet)
   };
 
   /**
@@ -1743,7 +1813,7 @@
    * @returns {WorkbookView}
    */
   WorkbookView.prototype.showWorksheet = function (index, bLockDraw) {
-  	if (window["NATIVE_EDITOR_ENJINE"] && !window['IS_NATIVE_EDITOR'] && !window['DoctRendererMode']) {
+  	if (AscCommon.isFileBuild()) {
 		return this;
 	}
     // ToDo disable method for assembly
@@ -1758,40 +1828,26 @@
       return this;
     }
 
-    var tmpWorksheet, selectionRange = null;
+    var selectionRange = null;
     // Только если есть активный
     if (-1 !== this.wsActive) {
       ws = this.getWorksheet();
       // Останавливаем ввод данных в редакторе ввода. Если в режиме ввода формул, то продолжаем работать с cellEditor'ом, чтобы можно было
       // выбирать ячейки для формулы
-      if (this.getCellEditMode()) {
-        if (this.cellEditor && this.cellEditor.formulaIsOperator()) {
-
-          this.lastActiveSheet = this.wsActive;
-          if (!this.cellFormulaEnterWSOpen) {
-          	this.copyActiveSheet = this.wsActive;
-            this.cellFormulaEnterWSOpen = ws;
-          } else {
-            ws.setFormulaEditMode(false);
-          }
-        } else {
-          this._onStopCellEditing();
-        }
+      if (!this._checkStopCellEditorInFormulas()) {
+          index = this.copyActiveSheet;
       }
       // Делаем очистку селекта
       ws.cleanSelection();
       this.stopTarget(ws);
-    }
 
-    if (c_oAscSelectionDialogType.Chart === this.selectionDialogType) {
-      // Когда идет выбор диапазона, то должны на закрываемом листе отменить выбор диапазона
-      tmpWorksheet = this.getWorksheet();
-      selectionRange = tmpWorksheet.model.selectionRange.getLast().clone(true);
-      tmpWorksheet.setSelectionDialogMode(c_oAscSelectionDialogType.None);
-    }
-    if (this.stateFormatPainter) {
-      // Должны отменить выбор на закрываемом листе
-      this.getWorksheet().formatPainter(c_oAscFormatPainterState.kOff);
+      if (this.selectionDialogMode) {
+          // Copy selection to set on new sheet
+          if (ws.model.selectionRange) {
+              selectionRange = ws.model.selectionRange.getLast().clone(true);
+          }
+          ws.cloneSelection(false);
+      }
     }
 
     if (index !== wb.getActive()) {
@@ -1805,6 +1861,12 @@
     this.handlers.trigger("asc_onHideComment");
 
     ws = this.getWorksheet(index);
+    if (this.selectionDialogMode) {
+      // Когда идет выбор диапазона, то на показываемом листе должны выставить нужный режим
+      ws.cloneSelection(true, selectionRange);
+      this._onSelectionRangeChanged(ws.getSelectionRangeValue());
+    }
+
     // Мы делали resize или меняли zoom, но не перерисовывали данный лист (он был не активный)
     if (ws.updateResize && ws.updateZoom) {
       ws.changeZoomResize();
@@ -1816,33 +1878,16 @@
 
     this.updateGroupData();
 
-    if (this.cellEditor && this.cellFormulaEnterWSOpen) {
-      if (ws === this.cellFormulaEnterWSOpen) {
-        this.cellFormulaEnterWSOpen.setFormulaEditMode(true);
+    if (this.cellEditor && this.isFormulaEditMode) {
+      if (this.isActive()) {
         this.cellEditor._showCanvas();
-      } else if (this.getCellEditMode() && this.cellEditor.isFormula()) {
-        this.cellFormulaEnterWSOpen.setFormulaEditMode(false);
-        /*скрываем cellEditor, в редактор добавляем %selected sheet name%+"!" */
+      } else {
         this.cellEditor._hideCanvas();
-        ws.cleanSelection();
-        ws.setFormulaEditMode(true);
       }
     }
 
     if (!bLockDraw) {
       ws.draw();
-    }
-
-    if (c_oAscSelectionDialogType.Chart === this.selectionDialogType) {
-      // Когда идет выбор диапазона, то на показываемом листе должны выставить нужный режим
-      ws.setSelectionDialogMode(this.selectionDialogType, selectionRange);
-      this.handlers.trigger("asc_onSelectionRangeChanged", ws.getSelectionRangeValue());
-    }
-    if (this.stateFormatPainter) {
-      // Должны отменить выбор на закрываемом листе
-      this.getWorksheet().formatPainter(this.stateFormatPainter);
-    }
-    if (!bLockDraw) {
       ws.objectRender.controller.updateSelectionState();
       ws.objectRender.controller.updateOverlay();
     }
@@ -1967,14 +2012,48 @@
   WorkbookView.prototype.getCellEditMode = function() {
 	  return this.isCellEditMode;
   };
+	WorkbookView.prototype.canEdit = function() {
+		return this.Api.canEdit();
+	};
 
-	WorkbookView.prototype.setCellEditMode = function(flag) {
-		this.isCellEditMode = !!flag;
+    WorkbookView.prototype.getDialogSheetName = function () {
+        return this.dialogSheetName || !this.isActive();
+    };
+
+	WorkbookView.prototype.setCellEditMode = function(mode) {
+		this.isCellEditMode = !!mode;
+		if (!this.isCellEditMode) {
+			this.setWizardMode(false);
+            this.setFormulaEditMode(false);
+        }
+	};
+
+    WorkbookView.prototype.setFormulaEditMode = function (mode) {
+        this.isFormulaEditMode = mode;
+        this.setSelectionDialogMode(mode ? c_oAscSelectionDialogType.Function : c_oAscSelectionDialogType.None, '');
+    };
+
+	WorkbookView.prototype.setWizardMode = function (mode) {
+		if (mode !== this.isWizardMode) {
+			this.isWizardMode = mode;
+			if (this.isWizardMode) {
+				this.cellEditor.updateWizardMode(this.isWizardMode);
+				this._onCleanSelectRange(true);
+			}
+			this.input.disabled = this.isWizardMode;
+		}
 	};
 
 	WorkbookView.prototype.isActive = function () {
 		return (-1 === this.copyActiveSheet || this.wsActive === this.copyActiveSheet);
 	};
+
+	WorkbookView.prototype.isDrawFormatPainter = function () {
+	    return this.formatPainterState && this.formatPainterSheet === this.wsActive;
+    };
+    WorkbookView.prototype.getFormatPainterSheet = function () {
+        return this.formatPainterState && this.model.getWorksheet(this.formatPainterSheet);
+    };
 
   WorkbookView.prototype.getIsTrackShape = function() {
     var ws = this.getWorksheet();
@@ -2059,7 +2138,7 @@
 
 	// Останавливаем ввод данных в редакторе ввода
 	WorkbookView.prototype.closeCellEditor = function (cancel) {
-		return this.getCellEditMode() ? this._onStopCellEditing(cancel) : true;
+		return this.getCellEditMode() ? this.cellEditor.close(!cancel) : true;
 	};
 
   WorkbookView.prototype.restoreFocus = function() {
@@ -2100,7 +2179,13 @@
 		}
 
         if (0 === defNameStr.toLowerCase().indexOf(fName)) {
-          arrResult.push(new AscCommonExcel.asc_CCompleteMenu(defNameStr, !defName.isTable ? c_oAscPopUpSelectorType.Range : c_oAscPopUpSelectorType.Table));
+          var _type = c_oAscPopUpSelectorType.Range;
+          if (defName.type === Asc.c_oAscDefNameType.slicer) {
+              _type = c_oAscPopUpSelectorType.Slicer;
+          } else if (defName.type === Asc.c_oAscDefNameType.table) {
+              _type = c_oAscPopUpSelectorType.Table;
+          }
+          arrResult.push(new AscCommonExcel.asc_CCompleteMenu(defNameStr, _type));
         }
       }
     }
@@ -2117,102 +2202,150 @@
     }
   };
 
-	// Вставка формулы в редактор
-	WorkbookView.prototype.insertFormulaInEditor = function (name, type, autoComplete) {
-		var t = this, ws = this.getWorksheet(), cursorPos, isNotFunction, tmp;
-		var activeCellRange = ws.getActiveCell(0, 0, false);
+    // Вставка формулы в редактор
+    WorkbookView.prototype.insertInCellEditor = function (name, type, autoComplete) {
+        var t = this, ws = this.getWorksheet(), cursorPos, tmp;
 
-		if (ws.model.inPivotTable(activeCellRange)) {
-			this.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
-			return;
-		}
+        var isNotFunction = c_oAscPopUpSelectorType.Func !== type;
 
-		if (c_oAscPopUpSelectorType.None === type) {
-			ws.setSelectionInfo("value", name, /*onlyActive*/true);
-			return;
-		}
+        // Проверяем, открыт ли редактор
+        if (this.getCellEditMode()) {
+            if (isNotFunction) {
+                this.skipHelpSelector = true;
+            }
 
-		isNotFunction = c_oAscPopUpSelectorType.Func !== type;
+            if (-1 !== this.lastFPos) {
+                if (-1 === this.arrExcludeFormulas.indexOf(name) && !isNotFunction) {
+                    //если следующий символ скобка - не добавляем ещё одну
+                    if('(' !== this.cellEditor.textRender.getChars(this.cellEditor.cursorPos, 1)) {
+                        name += '('; // ToDo сделать проверки при добавлении, чтобы не вызывать постоянно окно
+                    }
+                } else {
+                    this.skipHelpSelector = true;
+                }
+                tmp = this.cellEditor.skipTLUpdate;
+                this.cellEditor.skipTLUpdate = false;
+                this.cellEditor.replaceText(this.lastFPos, this.lastFNameLength, name);
+                this.cellEditor.skipTLUpdate = tmp;
+            } else if (false === this.cellEditor.insertFormula(name, isNotFunction)) {
+                // Не смогли вставить формулу, закроем редактор, с сохранением текста
+                this.cellEditor.close(true);
+            }
 
-		// Проверяем, открыт ли редактор
+            this.skipHelpSelector = false;
+        } else {
+            if (c_oAscPopUpSelectorType.None === type) {
+                ws.setSelectionInfo("value", name, /*onlyActive*/true);
+                return;
+            } else if (c_oAscPopUpSelectorType.TotalRowFunc === type) {
+                ws.setSelectionInfo("totalRowFunc", name, /*onlyActive*/true);
+                return;
+            }
+
+            var callback = function (success) {
+                // ToDo ?
+                if (isNotFunction) {
+                    t.skipHelpSelector = false;
+                }
+            };
+
+            // Редактор закрыт
+            var cellRange = {};
+            // Если нужно сделать автозаполнение формулы, то ищем ячейки)
+            if (autoComplete) {
+                cellRange = ws.autoCompleteFormula(name);
+            }
+            if (isNotFunction) {
+                name = "=" + name;
+            } else {
+                if (cellRange.notEditCell) {
+                    // Мы уже ввели все что нужно, редактор открывать не нужно
+                    return;
+                }
+                if (cellRange.text) {
+                    // Меняем значение ячейки
+                    name = "=" + name + "(" + cellRange.text + ")";
+                } else {
+                    // Меняем значение ячейки
+                    name = "=" + name + "()";
+                }
+                // Вычисляем позицию курсора (он должен быть в функции)
+                cursorPos = name.length - 1;
+            }
+
+            if (isNotFunction) {
+                t.skipHelpSelector = true;
+            }
+
+            var enterOptions = new AscCommonExcel.CEditorEnterOptions();
+            // Открываем, с выставлением позиции курсора
+            enterOptions.newText = name;
+            enterOptions.cursorPos = cursorPos;
+
+            this._onEditCell(enterOptions, callback);
+        }
+    };
+
+    WorkbookView.prototype.startWizard = function (name, doCleanCellContent) {
+        var t = this;
+        var callback = function (success) {
+            if (success) {
+                addFunction(name);
+            }
+        };
+
+        var addFunction = function (name) {
+        	t.setWizardMode(true);
+			if (doCleanCellContent || !t.cellEditor.isFormula()) {
+                t.cellEditor.selectionBegin = 0;
+                t.cellEditor.selectionEnd = t.cellEditor.textRender.getEndOfText();
+            }
+			t.cellEditor.insertFormula(name);
+			// ToDo send info from selection
+			var res = name ? new AscCommonExcel.CFunctionInfo(name) : null;
+			t.handlers.trigger("asc_onSendFunctionWizardInfo", res);
+        };
+
+        if (!this.getCellEditMode()) {
+			if (!name) {
+				this.cellEditor.needFindFirstFunction = true;
+			}
+            this._onEditCell(new AscCommonExcel.CEditorEnterOptions(), callback);
+            return;
+        }
+
+        addFunction(name);
+    };
+
+    WorkbookView.prototype.canEnterWizardRange = function (char) {
+        return this.getCellEditMode() && this.cellEditor.checkSymbolBeforeRange(char);
+    };
+
+	WorkbookView.prototype.insertArgumentsInFormula = function (args, argNum, argType, name) {
 		if (this.getCellEditMode()) {
-			if (isNotFunction) {
-				this.skipHelpSelector = true;
-			}
-			if (-1 !== this.lastFPos) {
-				if (-1 === this.arrExcludeFormulas.indexOf(name) && !isNotFunction) {
-					//если следующий символ скобка - не добавляем ещё одну
-					if('(' !== this.cellEditor.textRender.getChars(this.cellEditor.cursorPos, 1)) {
-						name += '('; // ToDo сделать проверки при добавлении, чтобы не вызывать постоянно окно
+			var sArguments = args.join(AscCommon.FormulaSeparators.functionArgumentSeparator);
+			this.cellEditor.changeCellText(sArguments);
+
+			if (name) {
+				var ws = this.getActiveWS();
+
+				var res = new AscCommonExcel.CFunctionInfo(name);
+				res.argumentsResult = [];
+				var argCalc = ws.calculateWizardFormula(args[argNum], argType);
+				res.argumentsResult[argNum] = argCalc.str;
+				if (argCalc.obj && argCalc.obj.type !== AscCommonExcel.cElementType.error) {
+					var funcCalc = ws.calculateWizardFormula(name + '(' + sArguments + ')');
+					res.functionResult = funcCalc.str;
+					if (funcCalc.obj && funcCalc.obj.type !== AscCommonExcel.cElementType.error) {
+						res.formulaResult = ws.calculateWizardFormula(this.cellEditor.getText().substring(1)).str;
 					}
-				} else {
-					this.skipHelpSelector = true;
 				}
-				tmp = this.cellEditor.skipTLUpdate;
-				this.cellEditor.skipTLUpdate = false;
-				this.cellEditor.replaceText(this.lastFPos, this.lastFNameLength, name);
-				this.cellEditor.skipTLUpdate = tmp;
-			} else if (false === this.cellEditor.insertFormula(name, isNotFunction)) {
-				// Не смогли вставить формулу, закроем редактор, с сохранением текста
-				this.cellEditor.close(true);
+
+				return res;
 			}
-			this.skipHelpSelector = false;
-		} else {
-			// Проверка глобального лока
-			if (this.collaborativeEditing.getGlobalLock()) {
-				return;
-			}
-
-			var selectionRange = ws.model.selectionRange.clone();
-
-			// Редактор закрыт
-			var cellRange = {};
-			// Если нужно сделать автозаполнение формулы, то ищем ячейки)
-			if (autoComplete) {
-				cellRange = ws.autoCompleteFormula(name);
-			}
-			if (isNotFunction) {
-				name = "=" + name;
-			} else {
-				if (cellRange.notEditCell) {
-					// Мы уже ввели все что нужно, редактор открывать не нужно
-					return;
-				}
-				if (cellRange.text) {
-					// Меняем значение ячейки
-					name = "=" + name + "(" + cellRange.text + ")";
-				} else {
-					// Меняем значение ячейки
-					name = "=" + name + "()";
-				}
-				// Вычисляем позицию курсора (он должен быть в функции)
-				cursorPos = name.length - 1;
-			}
-
-			var openEditor = function (res) {
-				if (res) {
-					// Выставляем переменные, что мы редактируем
-					t.setCellEditMode(true);
-
-					if (isNotFunction) {
-						t.skipHelpSelector = true;
-					}
-					t.hideSpecialPasteButton();
-					// Открываем, с выставлением позиции курсора
-					ws.openCellEditorWithText(t.cellEditor, name, cursorPos, /*isFocus*/false, selectionRange);
-					if (isNotFunction) {
-						t.skipHelpSelector = false;
-					}
-				} else {
-					t.setCellEditMode(false);
-					t.controller.setStrictClose(false);
-					t.controller.setFormulaEditMode(false);
-					ws.setFormulaEditMode(false);
-				}
-			};
-
-			ws._isLockedCells(activeCellRange, /*subType*/null, openEditor);
 		}
+
+		return null;
 	};
 
   WorkbookView.prototype.bIsEmptyClipboard = function() {
@@ -2230,7 +2363,7 @@
     ws = t.getWorksheet();
     g_clipboardExcel.pasteData(ws, _format, data1, data2, text_data, null, doNotShowButton);
   };
-  
+
   WorkbookView.prototype.specialPasteData = function(props) {
     if (!this.getCellEditMode()) {
 		this.getWorksheet().specialPaste(props);
@@ -2330,60 +2463,84 @@
 		}
 	};
 
-  WorkbookView.prototype.setSelectionDialogMode = function(selectionDialogType, selectRange) {
-    if (selectionDialogType === this.selectionDialogType) {
-      return;
-    }
+  WorkbookView.prototype._setSelectionDialogType = function (selectionDialogType) {
+      this.dialogSheetName = (c_oAscSelectionDialogType.Chart === selectionDialogType ||
+          c_oAscSelectionDialogType.PivotTableData === selectionDialogType ||
+          c_oAscSelectionDialogType.PivotTableReport === selectionDialogType);
+      this.dialogAbsName = (c_oAscSelectionDialogType.None !== selectionDialogType &&
+          c_oAscSelectionDialogType.Function !== selectionDialogType);
+  };
+  WorkbookView.prototype.setSelectionDialogMode = function (selectionDialogType, selectRange) {
+      var newSelectionDialogMode = c_oAscSelectionDialogType.None !== selectionDialogType;
 
-    if (c_oAscSelectionDialogType.None === selectionDialogType) {
-      this.selectionDialogType = selectionDialogType;
-      this.getWorksheet().setSelectionDialogMode(selectionDialogType, selectRange);
-      if (this.copyActiveSheet !== this.wsActive) {
-        this.showWorksheet(this.copyActiveSheet);
+      if (newSelectionDialogMode === this.selectionDialogMode) {
+          return;
       }
-      this.copyActiveSheet = -1;
-      this.input.disabled = false;
-    } else {
-      this.copyActiveSheet = this.wsActive;
 
-      var index, tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange);
-      if (tmpSelectRange) {
-        if (c_oAscSelectionDialogType.Chart === selectionDialogType) {
-          // Получаем sheet по имени
-          var ws = this.model.getWorksheetByName(tmpSelectRange.sheet);
-          if (!ws || ws.getHidden()) {
-            tmpSelectRange = null;
+      this._setSelectionDialogType(selectionDialogType);
+      var drawSelection = false;
+
+      if (newSelectionDialogMode) {
+          this.copyActiveSheet = this.wsActive;
+
+          var tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange);
+          if (tmpSelectRange) {
+              var ws = this.model.getWorksheetByName(tmpSelectRange.sheet);
+              if (!ws || ws.getHidden()) {
+                  tmpSelectRange = null;
+              } else {
+                  var index = ws.getIndex();
+                  if (index !== this.wsActive) {
+                      this.showWorksheet(index);
+                  }
+
+                  tmpSelectRange = tmpSelectRange.range;
+              }
           } else {
-            index = ws.getIndex();
-            this.showWorksheet(index);
-
-            tmpSelectRange = tmpSelectRange.range;
+              tmpSelectRange = selectRange;
           }
-        } else {
-          tmpSelectRange = tmpSelectRange.range;
-        }
+
+          this.getWorksheet().cloneSelection(true, tmpSelectRange && AscCommonExcel.g_oRangeCache.getAscRange(tmpSelectRange));
+          this.selectionDialogMode = newSelectionDialogMode;
+          this.input.disabled = !this.isFormulaEditMode || this.isWizardMode;
+          drawSelection = true;
       } else {
-        // Это не 3D ссылка
-        tmpSelectRange = selectRange;
+          this.selectionDialogMode = newSelectionDialogMode;
+          this.getWorksheet().cloneSelection(false);
+          if (this.copyActiveSheet !== this.wsActive) {
+              this.showWorksheet(this.copyActiveSheet);
+          } else {
+              drawSelection = true;
+          }
+
+          this.copyActiveSheet = -1;
+          this.input.disabled = false;
       }
 
-      this.getWorksheet().setSelectionDialogMode(selectionDialogType, tmpSelectRange);
-      // Нужно выставить после, т.к. при смене листа не должны проставлять режим
-      this.selectionDialogType = selectionDialogType;
-      this.input.disabled = true;
-    }
+      if (drawSelection) {
+          this.getWorksheet()._drawSelection();
+      }
   };
 
-  WorkbookView.prototype.formatPainter = function(stateFormatPainter) {
-    // Если передали состояние, то выставляем его. Если нет - то меняем на противоположное.
-    this.stateFormatPainter = (null != stateFormatPainter) ? stateFormatPainter : ((c_oAscFormatPainterState.kOff !== this.stateFormatPainter) ? c_oAscFormatPainterState.kOff : c_oAscFormatPainterState.kOn);
+  WorkbookView.prototype.formatPainter = function(formatPainterState, bLockDraw) {
+    var ws = this.getWorksheet();
+    if (!bLockDraw) {
+        ws.cleanSelection();
+    }
 
-    this.rangeFormatPainter = this.getWorksheet().formatPainter(this.stateFormatPainter);
-    if (this.stateFormatPainter) {
-      this.copyActiveSheet = this.wsActive;
+    // Если передали состояние, то выставляем его. Если нет - то меняем на противоположное.
+    this.formatPainterState = (null != formatPainterState) ? formatPainterState :
+        ((c_oAscFormatPainterState.kOff !== this.formatPainterState) ? c_oAscFormatPainterState.kOff : c_oAscFormatPainterState.kOn);
+
+    if (this.formatPainterState) {
+      this.formatPainterSheet = this.wsActive;
+      this.formatPainterRange = ws.model.selectionRange.clone();
     } else {
-      this.copyActiveSheet = -1;
+      this.formatPainterSheet = this.formatPainterRange = null;
       this.handlers.trigger('asc_onStopFormatPainter');
+    }
+    if (!bLockDraw) {
+      ws.updateSelectionWithSparklines();
     }
   };
 
@@ -2451,8 +2608,8 @@
     }
   };
 
-  WorkbookView.prototype.getDefinedNames = function(defNameListId) {
-    return this.model.getDefinedNamesWB(defNameListId, true);
+  WorkbookView.prototype.getDefinedNames = function(defNameListId, excludeErrorRefNames) {
+    return this.model.getDefinedNamesWB(defNameListId, true, excludeErrorRefNames);
   };
 
   WorkbookView.prototype.setDefinedNames = function(defName) {
@@ -2465,7 +2622,7 @@
 
   WorkbookView.prototype.editDefinedNames = function(oldName, newName) {
     //ToDo проверка defName.ref на знак "=" в начале ссылки. знака нет тогда это либо число либо строка, так делает Excel.
-    if (this.collaborativeEditing.getGlobalLock()) {
+    if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
       return;
     }
 
@@ -2473,11 +2630,14 @@
 
     var editDefinedNamesCallback = function(res) {
       if (res) {
-        if (oldName && oldName.asc_getIsTable()) {
+        if (oldName && oldName.asc_getType() === Asc.c_oAscDefNameType.table) {
           ws.model.autoFilters.changeDisplayNameTable(oldName.asc_getName(), newName.asc_getName());
         } else {
           t.model.editDefinesNames(oldName, newName);
         }
+        if (oldName && newName) {
+			ws.model.changeSlicerCacheName(oldName.asc_getName(), newName.asc_getName());
+		}
         t.handlers.trigger("asc_onEditDefName", oldName, newName);
         //условие исключает второй вызов asc_onRefreshDefNameList(первый в unlockDefName)
         if(!(t.collaborativeEditing.getCollaborativeEditing() && t.collaborativeEditing.getFast()))
@@ -2503,27 +2663,30 @@
     };
 
     var tableRange;
-    if(oldName && true === oldName.isTable)
+    if(oldName && oldName.type === Asc.c_oAscDefNameType.table)
     {
       var table = ws.model.autoFilters._getFilterByDisplayName(oldName.Name);
       if(table)
       {
         tableRange = table.Ref;
       }
+    } else if (oldName) {
+      var slicerCache = ws.model.getSlicerCacheByCacheName(oldName.Name);
+      if (slicerCache) {
+        tableRange = slicerCache.getRange();
+      }
     }
-    if(tableRange)
-    {
+
+    if (tableRange) {
       ws._isLockedCells( tableRange, null, callback );
-    }
-    else
-    {
+    } else {
       callback();
     }
   };
 
   WorkbookView.prototype.delDefinedNames = function(oldName) {
     //ToDo проверка defName.ref на знак "=" в начале ссылки. знака нет тогда это либо число либо строка, так делает Excel.
-    if (this.collaborativeEditing.getGlobalLock()) {
+    if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
       return;
     }
 
@@ -2548,15 +2711,12 @@
       ws._isLockedDefNames(delDefinedNamesCallback, defNameId);
 
     }
-
   };
 
   WorkbookView.prototype.getDefaultDefinedName = function() {
     //ToDo проверка defName.ref на знак "=" в начале ссылки. знака нет тогда это либо число либо строка, так делает Excel.
-
-    var ws = this.getWorksheet();
-    var oRangeValue = ws.getSelectionRangeValue();
-    return new Asc.asc_CDefName("", oRangeValue.asc_getName(), null);
+    var val = this.getWorksheet().getDefaultDefinedNameText();
+    return new Asc.asc_CDefName(val, this.getWorksheet().getSelectionRangeValue(true, true), null);
 
   };
   WorkbookView.prototype.getDefaultTableStyle = function() {
@@ -2668,12 +2828,6 @@
   	this.drawWS();
   };
 
-  WorkbookView.prototype.reInit = function() {
-    var ws = this.getWorksheet();
-    ws._initCellsArea(AscCommonExcel.recalcType.full);
-    ws._updateVisibleColsCount();
-    ws._updateVisibleRowsCount();
-  };
   WorkbookView.prototype.drawWS = function() {
     this.getWorksheet().draw();
   };
@@ -2882,7 +3036,7 @@
 	WorkbookView.prototype.getTableStyles = function (props, bPivotTable) {
 		var wb = this.model;
 		var t = this;
-		
+
 		var result = [];
 		var canvas = document.createElement('canvas');
 		var tableStyleInfo;
@@ -2981,11 +3135,11 @@
 
 	var ySize = (h - 1) - 2 * startY;
 	var xSize = w - 2 * startX;
-	
+
 	var stepY = (ySize) / row;
 	var stepX = (xSize) / col;
 	var lineStepX = (xSize - 1) / 5;
-	
+
 	var whiteColor = new CColor(255, 255, 255);
 	var blackColor = new CColor(0, 0, 0);
 
@@ -2998,7 +3152,7 @@
 
 	ctx.setFillStyle(whiteColor);
 	ctx.fillRect(0, 0, xSize + 2 * startX, ySize + 2 * startY);
-	
+
 	var calculateLineVer = function(color, x, y1, y2)
 	{
 		ctx.beginPath();
@@ -3009,7 +3163,7 @@
 		ctx.stroke();
 		ctx.closePath();
 	};
-	
+
 	var calculateLineHor = function(color, x1, y, x2)
 	{
 		ctx.beginPath();
@@ -3020,7 +3174,7 @@
 		ctx.stroke();
 		ctx.closePath();
 	};
-	
+
 	var calculateRect = function(color, x1, y1, w, h)
 	{
 		ctx.beginPath();
@@ -3056,14 +3210,14 @@
 				compiledStylesArr[i] = [];
 			}
 			compiledStylesArr[i][j] = curStyle;
-			
+
 			//fill
 			color = curStyle && curStyle.fill && curStyle.fill.bg();
 			if(color)
 			{
 				calculateRect(color, j * stepX, i * stepY, stepX, stepY);
 			}
-			
+
 			//borders
 			//left
 			prevStyle = (j - 1 >= 0) ? compiledStylesArr[i][j - 1] : null;
@@ -3091,7 +3245,7 @@
 			{
 				calculateLineHor(color.c, j * stepX, (i + 1) * stepY, (j + 1) * stepX);
 			}
-			
+
 			//marks
 			color = (curStyle && curStyle.font && curStyle.font.c) || defaultColor;
 			calculateLineHor(color, j * lineStepX + 3, (i + 1) * stepY - stepY / 2, (j + 1) * lineStepX - 2);
@@ -3103,11 +3257,12 @@
         return !this.getWorksheet().getSelectionShape();
     };
 	WorkbookView.prototype.GetSelectionRectsBounds = function () {
-		if (this.getWorksheet().getSelectionShape())
-		  return null;
+	    var ws = this.getWorksheet();
+		if (ws.getSelectionShape()) {
+            return null;
+        }
 
-		var ws = this.getWorksheet();
-		var range = ws.model.selectionRange.getLast();
+		var range = ws.model.getSelection().getLast();
 		var type = range.getType();
 		var l = ws.getCellLeft(range.c1, 3);
 		var t = ws.getCellTop(range.r1, 3);
@@ -3211,7 +3366,7 @@
 
 	WorkbookView.prototype.savePagePrintOptions = function (arrPagesPrint) {
 		var t = this;
-		var viewMode = !this.Api.canEdit();
+		var viewMode = !this.canEdit();
 
 		if(!arrPagesPrint) {
 			return;
@@ -3290,7 +3445,12 @@
 
 		var doCopy = function() {
 			History.Create_NewPoint();
-			var renameParams = t.model.copyWorksheet(0, insertBefore, name, undefined, undefined, undefined, pastedWs);
+			var renameParams = t.model.copyWorksheet(0, insertBefore, name, undefined, undefined, undefined, pastedWs, base64);
+			//TODO ошибку по срезам добавил в renameParams. необходимо пересмотреть
+			//переименовать эту переменную, либо не добавлять copySlicerError и посылать ошибку в другом месте
+			if (renameParams && renameParams.copySlicerError) {
+				t.handlers.trigger("asc_onError", c_oAscError.ID.MoveSlicerError, c_oAscError.Level.NoCritical);
+			}
 			callback(renameParams);
 		};
 
@@ -3306,7 +3466,160 @@
 		});
 	};
 
-  //------------------------------------------------------------export---------------------------------------------------
+	WorkbookView.prototype.beforeInsertSlicer = function () {
+		return this.getWorksheet().beforeInsertSlicer();
+	};
+
+	WorkbookView.prototype.insertSlicers = function (arr) {
+		return this.getWorksheet().insertSlicers(arr);
+	};
+
+	WorkbookView.prototype.setFilterValuesFromSlicer = function (name, val) {
+		var slicer = this.model.getSlicerByName(name);
+		//нам нужно получить индекс листа где находится кэш данного среза
+		var sheetIndex = slicer.getIndexSheetCache();
+		if (sheetIndex !== null) {
+			var ws = this.getWorksheet(sheetIndex);
+			if (ws) {
+				ws.setFilterValuesFromSlicer(slicer, val);
+			}
+		}
+	};
+
+	WorkbookView.prototype.deleteSlicer = function (name) {
+		for(var i in this.wsViews) {
+			this.wsViews[i].deleteSlicer(name);
+		}
+	};
+
+	WorkbookView.prototype.deleteSlicers = function (names) {
+		var slicers = [];
+		for(var j = 0; j < names.length; j++) {
+			for (var i in this.wsViews) {
+				var slicer = this.wsViews[i].model.getSlicerByName(names[j]);
+				if (slicer) {
+					slicers.push({ws: this.wsViews[i], slicer: slicer});
+					break;
+				}
+			}
+		}
+
+		var oThis = this;
+		var callback = function (success) {
+			var oWSView = oThis.getWorksheet();
+			if (!success) {
+                History.EndTransaction();
+				oWSView.handlers.trigger("selectionChanged");
+				return;
+			}
+			History.StartTransaction();
+
+			for (var i = 0; i < slicers.length; i++) {
+				slicers[i].ws.model.deleteSlicer(slicers[i].slicer.name);
+			}
+
+			History.EndTransaction();
+            History.EndTransaction();
+			oWSView.handlers.trigger("selectionChanged");
+		};
+
+		if (slicers && slicers.length) {
+			this.checkLockSlicers(slicers, true, callback);
+		}
+	};
+
+	WorkbookView.prototype.setSlicer = function (name, obj) {
+		for(var i in this.wsViews) {
+			var slicer = this.wsViews[i].model.getSlicerByName(name);
+			if (slicer) {
+				this.wsViews[i].setSlicer(slicer, obj);
+				break;
+			}
+		}
+	};
+
+	WorkbookView.prototype.setSlicers = function (names, obj) {
+		var slicers = [];
+		for(var j = 0; j < names.length; j++) {
+			for (var i in this.wsViews) {
+				var slicer = this.wsViews[i].model.getSlicerByName(names[j]);
+				if (slicer) {
+					slicers.push({ws: this.wsViews[i], slicer: slicer});
+					break;
+				}
+			}
+		}
+
+		var oThis = this;
+		var callback = function (success) {
+		    var oWSView = oThis.getWorksheet();
+			if (!success) {
+                oWSView.handlers.trigger("selectionChanged");
+                //Transaction was started in applyDrawingProps in order to prevent save between applyDrawingProps and asc_setSlicers
+                History.EndTransaction();
+				return;
+			}
+            History.StartTransaction();
+			for (var i = 0; i < slicers.length; i++) {
+				slicers[i].slicer.set(obj);
+			}
+            History.EndTransaction();
+            //Transaction was started in applyDrawingProps in order to prevent save between applyDrawingProps and asc_setSlicers
+            History.EndTransaction();
+            oWSView.handlers.trigger("selectionChanged");
+		};
+
+		if (slicers && slicers.length) {
+			this.checkLockSlicers(slicers, true, callback);
+		}
+	};
+
+	WorkbookView.prototype.checkLockSlicers = function (slicers, doLockRange, callback) {
+		var t = this;
+		var _lockMap = [];
+		var lockInfoArr = [];
+		var lockRanges = [];
+		var cache, defNameId, lockInfo, lockRange, sheetId;
+		for (var i = 0; i < slicers.length; i++) {
+			cache = slicers[i].slicer.getCacheDefinition();
+			sheetId =  slicers[i].ws.model.getId();
+			if (!_lockMap[cache.name]) {
+				_lockMap[cache.name] = 1;
+				defNameId = this.model.dependencyFormulas.getDefNameByName(cache.name, sheetId);
+				defNameId = defNameId ? defNameId.getNodeId() : null;
+				lockInfo = this.collaborativeEditing.getLockInfo(AscCommonExcel.c_oAscLockTypeElem.Object, null, -1, defNameId);
+				lockInfoArr.push(lockInfo);
+				if (doLockRange) {
+					lockRange = cache.getRange();
+					if (lockRange) {
+						lockRanges.push(this.collaborativeEditing.getLockInfo(AscCommonExcel.c_oAscLockTypeElem.Range, null, sheetId,
+							new AscCommonExcel.asc_CCollaborativeRange(lockRange.c1, lockRange.r1, lockRange.c2, lockRange.r2)));
+					}
+				}
+			}
+		}
+
+		var _callback = function (success) {
+			if (!success && callback) {
+				callback(false);
+			}
+
+			if (lockRanges && lockRanges.length) {
+				t.collaborativeEditing.lock(lockRanges, callback);
+			} else {
+				callback(true);
+			}
+		};
+
+		if (lockInfoArr && lockInfoArr.length) {
+			this.collaborativeEditing.lock(lockInfoArr, _callback);
+		} else {
+			_callback(true);
+		}
+	};
+
+
+	//------------------------------------------------------------export---------------------------------------------------
   window['AscCommonExcel'] = window['AscCommonExcel'] || {};
   window["AscCommonExcel"].WorkbookView = WorkbookView;
 })(window);

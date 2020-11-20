@@ -186,7 +186,7 @@ function CBinaryFileWriter()
             var oldPos = this.pos;
 
             this.len = Math.max(this.len * 2, this.pos + ((3 * count / 2) >> 0));
-			
+
             this.ImData = _ctx.createImageData(this.len / 4, 1);
             this.data = this.ImData.data;
             var newData = this.data;
@@ -260,6 +260,22 @@ function CBinaryFileWriter()
     this.WriteDouble = function(val)
     {
         this.WriteULong((val * 100000) >> 0);
+    };
+    var tempHelp = new ArrayBuffer(8);
+    var tempHelpUnit = new Uint8Array(tempHelp);
+    var tempHelpFloat = new Float64Array(tempHelp);
+    this.WriteDoubleReal = function(val)
+    {
+        this.CheckSize(8);
+        tempHelpFloat[0] = val;
+        this.data[this.pos++] = tempHelpUnit[0];
+        this.data[this.pos++] = tempHelpUnit[1];
+        this.data[this.pos++] = tempHelpUnit[2];
+        this.data[this.pos++] = tempHelpUnit[3];
+        this.data[this.pos++] = tempHelpUnit[4];
+        this.data[this.pos++] = tempHelpUnit[5];
+        this.data[this.pos++] = tempHelpUnit[6];
+        this.data[this.pos++] = tempHelpUnit[7];
     };
     this.WriteString = function(text)
     {
@@ -377,6 +393,17 @@ function CBinaryFileWriter()
             this._WriteUChar1(type, val);
     };
 
+    this._WriteChar1 = function(type, val)
+    {
+        this.WriteUChar(type);
+        this.WriteUChar(val);
+    };
+    this._WriteChar2 = function(type, val)
+    {
+        if (val != null)
+            this._WriteChar1(type, val);
+    };
+
     this._WriteBool1 = function(type, val)
     {
         this.WriteUChar(type);
@@ -399,6 +426,17 @@ function CBinaryFileWriter()
             this._WriteInt1(type, val);
     };
 
+    this._WriteUInt1 = function(type, val)
+    {
+        this.WriteUChar(type);
+        this.WriteULong(val);
+    };
+    this._WriteUInt2 = function (type, val)
+    {
+        if (val != null)
+            this._WriteUInt1(type, val);
+    };
+
     this._WriteInt3 = function (type, val, scale)
     {
         this._WriteInt1(type, val * scale);
@@ -419,6 +457,16 @@ function CBinaryFileWriter()
     {
         if (val != null)
             this._WriteDouble1(type, val);
+    };
+    this._WriteDoubleReal1 = function(type, val)
+    {
+        this.WriteUChar(type);
+        this.WriteDoubleReal(val);
+    };
+    this._WriteDoubleReal2 = function(type, val)
+    {
+        if (val != null)
+            this._WriteDoubleReal1(type, val);
     };
 
     this._WriteLimit1 = this._WriteUChar1;
@@ -463,6 +511,15 @@ function CBinaryFileWriter()
 
         return false;
     };
+    this.WriteRecord4 = function(type, val)
+    {
+        if (null != val)
+        {
+            this.StartRecord(type);
+            val.toStream(this);
+            this.EndRecord();
+        }
+    };
 
     this.WriteRecordArray = function(type, subtype, val_array, func_element_write)
     {
@@ -473,6 +530,18 @@ function CBinaryFileWriter()
 
         for (var i = 0; i < len; i++)
             this.WriteRecord1(subtype, val_array[i], func_element_write);
+
+        this.EndRecord();
+    };
+    this.WriteRecordArray4 = function(type, subtype, val_array)
+    {
+        this.StartRecord(type);
+
+        var len = val_array.length;
+        this.WriteULong(len);
+
+        for (var i = 0; i < len; i++)
+            this.WriteRecord4(subtype, val_array[i]);
 
         this.EndRecord();
     };
@@ -517,10 +586,10 @@ function CBinaryFileWriter()
         // ViewProps
 		if (presentation.ViewProps)
 			this.WriteViewProps(presentation.ViewProps);
-        
+
         // PresProps
 		this.WritePresProps(presentation);
-        
+
         // presentation
         this.WritePresentation(presentation);
 
@@ -903,7 +972,7 @@ function CBinaryFileWriter()
         var ret = "PPTY;v1;" + this.pos + ";";
         return ret + this.GetBase64Memory();
     };
-	
+
 	this.WriteDocument3 = function(presentation, base64) {
 		var _memory = new AscCommon.CMemory(true);
 		_memory.ImData = this.ImData;
@@ -917,9 +986,9 @@ function CBinaryFileWriter()
 		this.data = _memory.data;
 		this.len = _memory.len;
 		this.pos = _memory.pos;
-		
+
 		this.WriteDocument2(presentation);
-		
+
 		_memory.ImData = this.ImData;
 		_memory.data = this.data;
 		_memory.len = this.len;
@@ -961,10 +1030,10 @@ function CBinaryFileWriter()
         this.EndRecord();
     };
     this.WritePresProps = function(presentation)
-    {       
+    {
         this.StartMainRecord(c_oMainTables.PresProps);
         this.StartRecord(c_oMainTables.PresProps);
-        
+
         //showPr
         var showPr = presentation.showPr;
         if (showPr) {
@@ -977,7 +1046,7 @@ function CBinaryFileWriter()
             this._WriteBool2(3, showPr.useTimings);
 
             this.WriteUChar(g_nodeAttributeEnd);
-            
+
             if (showPr.browse) {
                 this.StartRecord(0);
                 //todo browseShowScrollbar
@@ -1746,6 +1815,7 @@ function CBinaryFileWriter()
             }
             case AscDFH.historyitem_type_GraphicFrame:
             case AscDFH.historyitem_type_ChartSpace:
+            case AscDFH.historyitem_type_SlicerView:
             {
                 oThis.WriteGrFrame(oSp);
                 break;
@@ -2123,7 +2193,9 @@ function CBinaryFileWriter()
 
         if (undefined !== rPr.FontSize && null != rPr.FontSize)
         {
-            oThis._WriteInt1(17, rPr.FontSize * 100);
+            var nFontSize = rPr.FontSize * 100;
+            nFontSize = Math.max(100, nFontSize);
+            oThis._WriteInt1(17, nFontSize);
         }
 
         if (AscCommon.vertalign_SubScript == rPr.VertAlign)
@@ -2896,7 +2968,7 @@ function CBinaryFileWriter()
 
                 oThis.WriteUChar(g_nodeAttributeStart);
                 oThis.WriteUChar(g_nodeAttributeEnd);
-				
+
                 var _src = fill.RasterImageId;
 				var imageLocal = AscCommon.g_oDocumentUrls.getImageLocal(_src);
                 if(imageLocal)
@@ -2928,16 +3000,20 @@ function CBinaryFileWriter()
                         _src = oThis.PresentationThemesOrigin + _src;
                     }
                     else if (0 != _src.indexOf("http:") && 0 != _src.indexOf("data:") && 0 != _src.indexOf("https:") && 0 != _src.indexOf("ftp:") && 0 != _src.indexOf("file:")){
-                        var imageUrl = AscCommon.g_oDocumentUrls.getImageUrl(_src);
-						if(imageUrl){
-							_src = imageUrl;
+						if (AscCommon.EncryptionWorker && AscCommon.EncryptionWorker.isCryptoImages() &&
+							window["AscDesktopEditor"] && window["AscDesktopEditor"]["Crypto_GetLocalImageBase64"]) {
+						    _src = window["AscDesktopEditor"]["Crypto_GetLocalImageBase64"](_src);
+						} else {
+							var imageUrl = AscCommon.g_oDocumentUrls.getImageUrl(_src);
+							if (imageUrl)
+							    _src = imageUrl;
 						}
                     }
                     if(window["native"] && window["native"]["GetImageTmpPath"]){
                         if(!(window.documentInfo && window.documentInfo["iscoauthoring"])){
                             _src = window["native"]["GetImageTmpPath"](_src);
                         }
-                        
+
                     }
                 }
 
@@ -3051,8 +3127,8 @@ function CBinaryFileWriter()
 
                 if(fill.color){
                     oThis.CorrectUniColorAlpha(fill.color, trans);
-                    oThis.WriteRecord1(0, fill.color, oThis.WriteUniColor);
                 }
+                oThis.WriteRecord1(0, fill.color, oThis.WriteUniColor);
                 oThis.EndRecord();
                 break;
             }
@@ -3172,7 +3248,7 @@ function CBinaryFileWriter()
                             }
                             case para_Space :
                             {
-                                _run_text += ' ';
+                                _run_text += AscCommon.encodeSurrogateChar(_elem.Content[j].Value);
                                 break;
                             }
                             case para_Tab :
@@ -3343,7 +3419,7 @@ function CBinaryFileWriter()
 							oThis.DocSaveParams = new AscCommonWord.DocSaveParams(false, false);
 						}
 						var boMaths = new Binary_oMathWriter(_memory, null, oThis.DocSaveParams);
-						boMaths.bs.WriteItemWithLength(function(){boMaths.WriteOMathPara(_elem)});	
+						boMaths.bs.WriteItemWithLength(function(){boMaths.WriteOMathPara(_elem)});
 
 						oThis.ImData = _memory.ImData;
 						oThis.data = _memory.data;
@@ -3353,7 +3429,7 @@ function CBinaryFileWriter()
 
 						_memory.ImData = null;
 						_memory.data = null;
-						
+
 						oThis.EndRecord();
 						oThis.EndRecord();
 						_count++;
@@ -3675,6 +3751,15 @@ function CBinaryFileWriter()
                 oThis.WriteRecord2(3, grObj, oThis.WriteChart2);
                 break;
             }
+            case AscDFH.historyitem_type_SlicerView:
+            {
+                var slicer = grObj.getSlicer();
+                var slicerType = (slicer && slicer.isExt()) ? 6 : 5;
+                oThis.WriteRecord2(slicerType, grObj, function () {
+                    grObj.toStream(oThis)
+                });
+                break;
+            }
         }
         oThis.EndRecord();
     };
@@ -3873,7 +3958,7 @@ function CBinaryFileWriter()
 			}
             oThis._WriteInt1(0, ( (row.Pr.Height.Value + fMaxBottomMargin + fMaxTopMargin + fMaxTopBorder/2 + fMaxBottomBorder/2) * 36000) >> 0);
 		}
-        
+
         oThis.WriteUChar(g_nodeAttributeEnd);
 
         oThis.StartRecord(0);
@@ -4423,6 +4508,7 @@ function CBinaryFileWriter()
                 }
                 case AscDFH.historyitem_type_GraphicFrame:
                 case AscDFH.historyitem_type_ChartSpace:
+                case AscDFH.historyitem_type_SlicerView:
                 {
                     oThis.WriteRecord1(1, nv.locks, oThis.WriteGrFrameCNvPr);
                     break;
@@ -5513,6 +5599,7 @@ function CBinaryFileWriter()
                     break;
                 }
                 case AscDFH.historyitem_type_ChartSpace:
+                case AscDFH.historyitem_type_SlicerView:
                 {
                     this.BinaryFileWriter.WriteGrFrame(grObject);
                     break;

@@ -370,6 +370,8 @@ function BinaryPPTYLoader()
         this.LoadDocument();
         if(AscFonts.IsCheckSymbols)
         {
+            var bLoad = AscCommon.g_oIdCounter.m_bLoad;
+            AscCommon.g_oIdCounter.Set_Load(false);
             for(var nField = 0; nField < this.fields.length; ++nField)
             {
                 var oField = this.fields[nField];
@@ -379,6 +381,7 @@ function BinaryPPTYLoader()
                     AscFonts.FontPickerByCharacter.getFontsByString(sValue);
                 }
             }
+            AscCommon.g_oIdCounter.Set_Load(bLoad);
         }
         this.fields.length = 0;
         AscFormat.checkPlaceholdersText();
@@ -445,14 +448,17 @@ function BinaryPPTYLoader()
 
             pres.fromStream(s, this);
 
-            if(pres.attrShowSpecialPlsOnTitleSld !== null)
+            if(!this.IsThemeLoader)
             {
-                this.presentation.setShowSpecialPlsOnTitleSld(pres.attrShowSpecialPlsOnTitleSld);
-            }
+                if(pres.attrShowSpecialPlsOnTitleSld !== null)
+                {
+                    this.presentation.setShowSpecialPlsOnTitleSld(pres.attrShowSpecialPlsOnTitleSld);
+                }
 
-            if(pres.attrFirstSlideNum !== null)
-            {
-                this.presentation.setFirstSlideNum(pres.attrFirstSlideNum);
+                if(pres.attrFirstSlideNum !== null)
+                {
+                    this.presentation.setFirstSlideNum(pres.attrFirstSlideNum);
+                }
             }
 
             this.presentation.defaultTextStyle = pres.defaultTextStyle;
@@ -858,7 +864,6 @@ function BinaryPPTYLoader()
                     {
                         var indexL = s.GetULong();
                         master.addToSldLayoutLstToPos(master.sldLayoutLst.length, this.aSlideLayouts[indexL]);
-                        this.aSlideLayouts[indexL].setMaster( master);
                         break;
                     }
                     case 1:
@@ -7240,6 +7245,7 @@ function BinaryPPTYLoader()
         var _xfrm = null;
         var _table = null;
         var _chart = null;
+        var _slicer = null;
 
         while (s.cur < _end_rec)
         {
@@ -7285,6 +7291,20 @@ function BinaryPPTYLoader()
                     s.Seek2(_pos + _length);
                     break;
                 }
+                case 5:
+                case 6:
+                {
+                    if (typeof AscFormat.CSlicer !== "undefined")
+                    {
+                        _slicer = new AscFormat.CSlicer();
+                        _slicer.fromStream(s);
+                    }
+                    else
+                    {
+                        s.SkipRecord();
+                    }
+                    break;
+                }
                 default:
                 {
                     s.SkipRecord();
@@ -7296,7 +7316,7 @@ function BinaryPPTYLoader()
         s.Seek2(_end_rec);
 
         this.TempGroupObject = null;
-        if (_table == null && _chart == null)
+        if (_table == null && _chart == null && _slicer == null)
             return null;
 
         if (_table != null)
@@ -7349,6 +7369,33 @@ function BinaryPPTYLoader()
             _chart.spPr.setXfrm(_xfrm);
             _xfrm.setParent(_chart.spPr);
             return _chart;
+        }
+        else if(_slicer != null)
+        {
+            _slicer.setBDeleted(false);
+            if(!_slicer.spPr)
+            {
+                _slicer.setSpPr(new AscFormat.CSpPr());
+                _slicer.spPr.setParent(_slicer);
+            }
+            if(!_xfrm){
+                _xfrm = new AscFormat.CXfrm();
+                _xfrm.setOffX(0);
+                _xfrm.setOffY(0);
+                _xfrm.setExtX(0);
+                _xfrm.setExtY(0);
+            }
+            _slicer.spPr.setXfrm(_xfrm);
+            _xfrm.setParent(_slicer.spPr);
+            if(AscCommon.isRealObject(_nvGraphicFramePr) )
+            {
+                _slicer.setNvSpPr(_nvGraphicFramePr);
+                if(AscFormat.isRealNumber(_nvGraphicFramePr.locks))
+                {
+                    _slicer.setLocks(_nvGraphicFramePr.locks);
+                }
+            }
+            return _slicer;
         }
 
         return _graphic_frame;

@@ -1412,7 +1412,7 @@ ParaMath.prototype.Remove = function(Direction, bOnAddText)
                         oContent.Select_ElementByPos(nStartPos + 1, true);
                     }
                 }
-                else //if (Direction < 0)
+                else
                 {
                     var oPrevElement = oContent.getElem(nStartPos - 1);
                     if (para_Math_Run === oPrevElement.Type)
@@ -1630,6 +1630,11 @@ ParaMath.prototype.Get_DrawingObjectRun = function(Id)
     return null;
 };
 
+ParaMath.prototype.GetRunByElement = function(oRunElement)
+{
+	return null;
+};
+
 ParaMath.prototype.Get_DrawingObjectContentPos = function(Id, ContentPos, Depth)
 {
     return false;
@@ -1666,7 +1671,7 @@ ParaMath.prototype.Get_AllFontNames = function(AllFonts)
 
 ParaMath.prototype.GetSelectedElementsInfo = function(Info, ContentPos, Depth)
 {
-    Info.Set_Math(this);
+    Info.SetMath(this);
 };
 
 ParaMath.prototype.GetSelectedText = function(bAll, bClearText, oPr)
@@ -1801,7 +1806,6 @@ ParaMath.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 		// информация о пересчете
 		var RPI = new CRPI();
 		RPI.MergeMathInfo(this.ParaMathRPI);
-
 		this.Root.PreRecalc(null, this, new CMathArgSize(), RPI);
 
 		this.PageInfo.Reset();

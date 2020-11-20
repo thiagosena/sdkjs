@@ -65,6 +65,9 @@ CSdtBase.prototype.GetPlaceholderText = function()
  */
 CSdtBase.prototype.SetPlaceholderText = function(sText)
 {
+	if (!sText)
+		return this.SetPlaceholder(undefined);
+
 	var oLogicDocument = this.GetLogicDocument();
 	var oGlossary      = oLogicDocument.GetGlossaryDocument();
 
@@ -88,18 +91,35 @@ CSdtBase.prototype.SetPlaceholderText = function(sText)
 	var oParaPr = oDocPart.GetDirectParaPr();
 
 	oDocPart.ClearContent(true);
+	if (this.IsForm())
+		oDocPart.MakeSingleParagraphContent();
+
 	oDocPart.SelectAll();
 
 	var oParagraph = oDocPart.GetFirstParagraph();
 	oParagraph.CorrectContent();
+
+	var oRun = null;
+	if (this.IsForm())
+		oRun = oParagraph.MakeSingleRunParagraph();
+
 	oParagraph.SetDirectParaPr(oParaPr);
 	oParagraph.SetDirectTextPr(oTextPr);
 
-	oDocPart.AddText(sText);
+	if (oRun)
+		oRun.AddText(sText);
+	else
+		oDocPart.AddText(sText);
+
 	oDocPart.RemoveSelection();
 
-	if (this.IsPlaceHolder())
+	var isPlaceHolder = this.IsPlaceHolder();
+	if (isPlaceHolder && this.IsPicture())
+		this.private_UpdatePictureContent();
+	else if (isPlaceHolder)
 		this.private_FillPlaceholderContent();
+
+	return oDocPart;
 };
 /**
  * Выставляем параметр, что данный контрол должен быть простым текстовым
@@ -179,3 +199,101 @@ CSdtBase.prototype.IsContentControlTemporary = function()
 {
 	return this.Pr.Temporary;
 };
+/**
+ * @param {CSdtFormPr} oFormPr
+ */
+CSdtBase.prototype.SetFormPr = function(oFormPr)
+{
+	if ((!this.Pr.FormPr && oFormPr) || !this.Pr.FormPr.IsEqual(oFormPr))
+	{
+		History.Add(new CChangesSdtPrFormPr(this, this.Pr.FormPr, oFormPr));
+		this.Pr.FormPr = oFormPr;
+
+		var oLogicDocument = this.GetLogicDocument();
+		if (oLogicDocument)
+			oLogicDocument.RegisterForm(this);
+
+		this.private_OnAddFormPr();
+	}
+}
+/**
+ * Удаляем настройки специальных форм
+ */
+CSdtBase.prototype.RemoveFormPr = function()
+{
+	if (this.Pr.FormPr)
+	{
+		History.Add(new CChangesSdtPrFormPr(this, this.Pr.FormPr, undefined));
+		this.Pr.FormPr = undefined;
+
+		var oLogicDocument = this.GetLogicDocument();
+		if (oLogicDocument)
+			oLogicDocument.UnregisterForm(this);
+
+		this.private_OnAddFormPr();
+	}
+};
+/**
+ * @returns {?CSdtFormPr}
+ */
+CSdtBase.prototype.GetFormPr = function()
+{
+	return this.Pr.FormPr;
+};
+/**
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsForm = function()
+{
+	return (undefined !== this.Pr.FormPr);
+};
+/**
+ * Получаем ключ для специальной формы, если он задан
+ * @returns {?string}
+ */
+CSdtBase.prototype.GetFormKey = function()
+{
+	if (!this.IsForm())
+		return undefined;
+
+	return (this.Pr.FormPr.Key);
+};
+/**
+ * Проверяем, является ли заданный контрол радио-кнопкой
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsRadioButton = function()
+{
+	return !!(this.IsCheckBox() && this.Pr.CheckBox && this.Pr.CheckBox.GroupKey);
+};
+/**
+ * Является ли данный контейнер специальной текстовой формой
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsTextForm = function()
+{
+	return false;
+};
+/**
+ * Получаем ключ для группы радио-кнопок
+ * @returns {?string}
+ */
+CSdtBase.prototype.GetRadioButtonGroupKey = function()
+{
+	if (!this.IsRadioButton())
+		return undefined;
+
+	return (this.Pr.CheckBox.GroupKey);
+};
+/**
+ * Для чекбоксов и радио-кнопок получаем состояние
+ * @returns {bool}
+ */
+CSdtBase.prototype.IsCheckBoxChecked = function()
+{
+	if (this.IsCheckBox())
+		return this.Pr.CheckBox.Checked;
+
+	return false;
+};
+

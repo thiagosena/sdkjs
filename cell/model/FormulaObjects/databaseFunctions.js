@@ -43,8 +43,12 @@
 	var cErrorType = AscCommonExcel.cErrorType;
 	var cNumber = AscCommonExcel.cNumber;
 	var cError = AscCommonExcel.cError;
+	var argType = Asc.c_oAscFormulaArgumentType;
 
 	function StatisticOnlineAlgorithm(){
+		this.reset();
+	}
+	StatisticOnlineAlgorithm.prototype.reset = function() {
 		this.count = 0;
 		this.countNums = 0;
 		this.min = Number.POSITIVE_INFINITY;
@@ -54,7 +58,7 @@
 		this.mean = 0;
 		this.M2 = 0;
 		this.errorType = null;
-	}
+	};
 	StatisticOnlineAlgorithm.prototype.union = function(val) {
 		this.min = Math.min(this.min, val.min);
 		this.max = Math.max(this.max, val.max);
@@ -121,9 +125,12 @@
 	StatisticOnlineAlgorithm.prototype.getStdDevP = function() {
 		return Math.sqrt(this.getVarP());
 	};
+	StatisticOnlineAlgorithm.prototype.isEmpty = function() {
+		return 0 === this.count && 0 === this.countNums;
+	};
 	StatisticOnlineAlgorithm.prototype.getCellValue = function(dataType, fieldType, rowType, colType) {
 		var oCellValue;
-		if (0 === this.count && 0 === this.countNums) {
+		if (this.isEmpty()) {
 			return oCellValue;
 		}
 		oCellValue = new AscCommonExcel.CCellValue();
@@ -393,6 +400,7 @@
 	cDAVERAGE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cDAVERAGE.prototype.arrayIndexes = {0: 1, 2: 1};
 	cDAVERAGE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cDAVERAGE.prototype.argumentsType = [argType.reference, argType.number, argType.text];
 	cDAVERAGE.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -443,6 +451,7 @@
 	cDCOUNT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cDCOUNT.prototype.arrayIndexes = {0: 1, 2: 1};
 	cDCOUNT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cDCOUNT.prototype.argumentsType = [argType.reference, argType.number, argType.text];
 	cDCOUNT.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -492,6 +501,7 @@
 	cDCOUNTA.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cDCOUNTA.prototype.arrayIndexes = {0: 1, 2: 1};
 	cDCOUNTA.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cDCOUNTA.prototype.argumentsType = [argType.reference, argType.number, argType.text];
 	cDCOUNTA.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -533,6 +543,7 @@
 	cDGET.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cDGET.prototype.arrayIndexes = {0: 1, 2: 1};
 	cDGET.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cDGET.prototype.argumentsType = [argType.reference, argType.number, argType.text];
 	cDGET.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -571,6 +582,7 @@
 	cDMAX.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cDMAX.prototype.arrayIndexes = {0: 1, 2: 1};
 	cDMAX.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cDMAX.prototype.argumentsType = [argType.reference, argType.number, argType.text];
 	cDMAX.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -610,6 +622,7 @@
 	cDMIN.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cDMIN.prototype.arrayIndexes = {0: 1, 2: 1};
 	cDMIN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cDMIN.prototype.argumentsType = [argType.reference, argType.number, argType.text];
 	cDMIN.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -650,6 +663,7 @@
 	cDPRODUCT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cDPRODUCT.prototype.arrayIndexes = {0: 1, 2: 1};
 	cDPRODUCT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cDPRODUCT.prototype.argumentsType = [argType.reference, argType.number, argType.text];
 	cDPRODUCT.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -697,6 +711,7 @@
 	cDSTDEV.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cDSTDEV.prototype.arrayIndexes = {0: 1, 2: 1};
 	cDSTDEV.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cDSTDEV.prototype.argumentsType = [argType.reference, argType.number, argType.text];
 	cDSTDEV.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -752,6 +767,7 @@
 	cDSTDEVP.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cDSTDEVP.prototype.arrayIndexes = {0: 1, 2: 1};
 	cDSTDEVP.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cDSTDEVP.prototype.argumentsType = [argType.reference, argType.number, argType.text];
 	cDSTDEVP.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -808,6 +824,7 @@
 	cDSUM.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cDSUM.prototype.arrayIndexes = {0: 1, 2: 1};
 	cDSUM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cDSUM.prototype.argumentsType = [argType.reference, argType.number, argType.text];
 	cDSUM.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -851,6 +868,7 @@
 	cDVAR.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cDVAR.prototype.arrayIndexes = {0: 1, 2: 1};
 	cDVAR.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cDVAR.prototype.argumentsType = [argType.reference, argType.number, argType.text];
 	cDVAR.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);
@@ -913,6 +931,7 @@
 	cDVARP.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cDVARP.prototype.arrayIndexes = {0: 1, 2: 1};
 	cDVARP.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cDVARP.prototype.argumentsType = [argType.reference, argType.number, argType.text];
 	cDVARP.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true, [cElementType.array, null, cElementType.array]);

@@ -59,6 +59,9 @@ function CDrawingDocument()
     this.IsLockObjectsEnable = false;
 
     AscCommon.g_oHtmlCursor.register("de-markerformat", "marker_format", "14 8", "pointer");
+    AscCommon.g_oHtmlCursor.register("select-table-row", "select_row", "10 5", "default");
+    AscCommon.g_oHtmlCursor.register("select-table-column", "select_column", "5 10", "default");
+    AscCommon.g_oHtmlCursor.register("select-table-content", "select_table", "10 10", "default");
 
     this.m_oWordControl     = null;
     this.m_oLogicDocument   = null;
@@ -91,6 +94,8 @@ function CDrawingDocument()
     this.m_bIsSelection = false;
     this.m_bIsSearching = false;
     this.m_lCountRect = 0;
+
+    this.MathTrack = new AscCommon.CMathTrack();
 
     this.CurrentSearchNavi = null;
     this.SearchTransform = null;
@@ -149,7 +154,6 @@ function CDrawingDocument()
     this.Overlay = null;
     this.IsTextMatrixUse = false;
 
-
     this.getDrawingObjects = function()
     {
         var oWs = Asc.editor.wb.getWorksheet();
@@ -162,22 +166,26 @@ function CDrawingDocument()
     this.Start_CollaborationEditing = function()
     {
     };
+
     this.SetCursorType = function(sType, Data)
     {
     };
+
     this.LockCursorType = function(sType)
     {
     };
+
     this.LockCursorTypeCur = function()
     {
-    }
+    };
+
     this.UnlockCursorType = function()
     {
-    }
+    };
 
     this.OnStartRecalculate = function(pageCount)
-    {;
-    }
+    {
+    };
 
     this.OnRepaintPage = function(index)
     {
@@ -193,7 +201,7 @@ function CDrawingDocument()
 
 	this.ChangePageAttack = function(pageIndex)
 	{
-	}
+	};
 
     this.StartRenderingPage = function(pageIndex)
     {
@@ -269,19 +277,23 @@ function CDrawingDocument()
     {
         return false;
     };
+
     this.ConvertCoordsToCursorWR = function(x, y, pageIndex, transform)
     {
 
         return { X : 0, Y : 0, Error: true };
     };
+
     this.ConvertCoordsToCursor = function(x, y, pageIndex, bIsRul)
     {
         return { X : 0, Y : 0, Error: true };
     };
+
     this.ConvertCoordsToCursor2 = function(x, y, pageIndex, bIsRul)
     {
         return { X : 0, Y : 0, Error: true };
     };
+
     this.ConvertCoordsToCursor3 = function(x, y, pageIndex)
     {
         return { X : 0, Y : 0, Error: true };
@@ -297,6 +309,7 @@ function CDrawingDocument()
             clearInterval( this.m_lTimerTargetId );
         this.m_lTimerTargetId = setInterval( oThis.DrawTarget, 500 );
     };
+
     this.TargetEnd = function()
     {
         this.TargetShowFlag = false;
@@ -309,6 +322,7 @@ function CDrawingDocument()
         }
         this.TargetHtmlElement.style.display = "none";
     };
+
     this.UpdateTargetNoAttack = function()
     {
     };
@@ -323,7 +337,7 @@ function CDrawingDocument()
         this.TargetCursorColor.R = r;
         this.TargetCursorColor.G = g;
         this.TargetCursorColor.B = b;
-    }
+    };
 
     this.CheckTargetDraw = function(x, y)
     {
@@ -457,12 +471,12 @@ function CDrawingDocument()
 
 		if (AscCommon.g_inputContext)
 			AscCommon.g_inputContext.move(targetPosX, targetPosY);
-    }
+    };
 
     this.UpdateTargetTransform = function(matrix)
     {
         this.TextMatrix = matrix;
-    }
+    };
 
     this.UpdateTarget = function(x, y, pageIndex)
     {
@@ -507,19 +521,21 @@ function CDrawingDocument()
         this.m_dTargetSize = size;
         //this.TargetHtmlElement.style.height = Number(this.m_dTargetSize * this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100) + "px";
         //this.TargetHtmlElement.style.width = "2px";
-    }
+    };
+
     this.DrawTarget = function()
     {
         if ( "block" != oThis.TargetHtmlElement.style.display && oThis.NeedTarget )
             oThis.TargetHtmlElement.style.display = "block";
         else
             oThis.TargetHtmlElement.style.display = "none";
-    }
+    };
 
     this.TargetShow = function()
     {
         this.TargetShowNeedFlag = true;
-    }
+    };
+
     this.CheckTargetShow = function()
     {
         if (this.TargetShowFlag && this.TargetShowNeedFlag)
@@ -541,22 +557,70 @@ function CDrawingDocument()
             this.TargetHtmlElement.style.display = "block";
 
         this.TargetShowFlag = true;
-    }
+    };
+
     this.StartTrackImage = function(obj, x, y, w, h, type, pagenum)
     {
-    }
+    };
+
     this.StartTrackTable = function(obj, transform)
     {
-    }
+    };
+
     this.EndTrackTable = function(pointer, bIsAttack)
     {
     };
+
     this.CheckTrackTable = function()
     {
     };
+
     this.DrawTableTrack = function(overlay)
     {
     };
+
+    this.DrawMathTrack = function (overlay)
+    {
+        if (!this.MathTrack.IsActive())
+            return;
+        var drawingObjects = this.getDrawingObjects();
+        if(!drawingObjects) {
+            return;
+        }
+
+        if(!this.TextMatrix)
+            return;
+        overlay.Show();
+        var nIndex, nCount;
+        var oPath;
+        var dKoefX, dKoefY;
+        var PathLng = this.MathTrack.GetPolygonsCount();
+
+        dKoefX = drawingObjects.convertMetric(1, 3, 0);
+        dKoefY = dKoefX;
+        var _offX = 0;
+        var _offY = 0;
+        if (this.AutoShapesTrack && this.AutoShapesTrack.Graphics && this.AutoShapesTrack.Graphics.m_oCoordTransform)
+        {
+            _offX = this.AutoShapesTrack.Graphics.m_oCoordTransform.tx;
+            _offY = this.AutoShapesTrack.Graphics.m_oCoordTransform.ty;
+        }
+        var oTextMatrix = this.TextMatrix || AscCommon.CMatrix();
+        var _1px_mm_x = 1 / Math.max(dKoefX, 0.001);
+        var _1px_mm_y = 1 / Math.max(dKoefY, 0.001);
+        for (nIndex = 0; nIndex < PathLng; nIndex++)
+        {
+            oPath = this.MathTrack.GetPolygon(nIndex);
+            this.MathTrack.DrawWithMatrix(overlay, oPath, 0, 0, "#939393", dKoefX, dKoefY, _offX, _offY, oTextMatrix);
+            this.MathTrack.DrawWithMatrix(overlay, oPath, _1px_mm_x, _1px_mm_y, "#FFFFFF", dKoefX, dKoefY, _offX, _offY, oTextMatrix);
+        }
+        for (nIndex = 0, nCount = this.MathTrack.GetSelectPathsCount(); nIndex < nCount; nIndex++)
+        {
+            oPath =  this.MathTrack.GetSelectPath(nIndex);
+            this.MathTrack.DrawSelectPolygon(overlay, oPath, dKoefX, dKoefY, _offX, _offY, oTextMatrix);
+        }
+    };
+
     this.SetCurrentPage = function(PageIndex)
     {
     };
@@ -574,13 +638,16 @@ function CDrawingDocument()
             drawingObjects.getOverlay().m_oContext.globalAlpha = 1.0;
         }
     };
+
 	this.SelectClear = function()
     {
 
     };
+
     this.SearchClear = function()
     {
     };
+
     this.AddPageSearch = function(findText, rects, type)
     {
 
@@ -588,15 +655,16 @@ function CDrawingDocument()
 
     this.StartSearchTransform = function(transform)
     {
-    }
+    };
 
     this.EndSearchTransform = function()
     {
-    }
+    };
 
     this.StartSearch = function()
     {
-    }
+    };
+
     this.EndSearch = function(bIsChange)
     {
     };
@@ -611,7 +679,8 @@ function CDrawingDocument()
 
         if (this.IsTextMatrixUse)
             this.Overlay.m_oContext.strokeStyle = "#9ADBFE";
-    }
+    };
+
     this.private_EndDrawSelection = function()
     {
         var ctx = this.Overlay.m_oContext;
@@ -630,7 +699,7 @@ function CDrawingDocument()
 
         this.IsTextMatrixUse = false;
         this.Overlay = null;
-    }
+    };
 
     this.AddPageSelection = function(pageIndex, x, y, w, h)
     {
@@ -708,7 +777,7 @@ function CDrawingDocument()
             ctx.lineTo(x4, y4);
             ctx.closePath();
         }
-    }
+    };
 
     this.SelectShow = function()
     {
@@ -731,13 +800,20 @@ function CDrawingDocument()
     {
     };
 
+    this.Update_MathTrack = function (IsActive, IsContentActive, oMath)
+    {
+        var PixelError = this.GetMMPerDot(1) * 3;
+        this.MathTrack.Update(IsActive, IsContentActive, oMath, PixelError);
+    };
+
     this.Update_ParaTab = function(Default_Tab, ParaTabs)
     {
     };
 
     this.UpdateTableRuler = function(isCols, index, position)
     {
-    }
+    };
+
     this.GetDotsPerMM = function(value)
     {
         return value * Asc.editor.wb.getZoom() * g_dKoef_mm_to_pix;
@@ -750,8 +826,8 @@ function CDrawingDocument()
     this.GetVisibleMMHeight = function()
     {
         return 0;
-    }
-;
+    };
+
     // вот оооочень важная функция. она выкидывает из кэша неиспользуемые шрифты
     this.CheckFontCache = function()
     {
@@ -869,8 +945,7 @@ function CDrawingDocument()
             this.GuiCanvasFillTextureCtx.stroke();
             this.GuiCanvasFillTextureCtx.beginPath();
         }
-    }
-
+    };
 
     this.DrawImageTextureFillTextArt = function(url)
     {
@@ -941,9 +1016,7 @@ function CDrawingDocument()
             this.GuiCanvasFillTextureCtxTextArt.stroke();
             this.GuiCanvasFillTextureCtxTextArt.beginPath();
         }
-    }
-
-
+    };
 
     this.InitGuiCanvasShape = function(div_id)
     {
@@ -986,7 +1059,7 @@ function CDrawingDocument()
         {
             _div_elem.appendChild(this.GuiCanvasFillTexture);
         }
-    }
+    };
 
     this.InitGuiCanvasTextProps = function(div_id)
     {
@@ -1034,7 +1107,7 @@ function CDrawingDocument()
 
             _div_elem.appendChild(this.GuiCanvasTextProps);
         }
-    }
+    };
 
     this.InitGuiCanvasTextArt = function(div_id)
     {
@@ -1074,7 +1147,7 @@ function CDrawingDocument()
         {
             _div_elem.appendChild(this.GuiCanvasFillTextureTextArt);
         }
-    }
+    };
 
     this.DrawGuiCanvasTextProps = function(props)
     {
@@ -1253,7 +1326,7 @@ function CDrawingDocument()
 
     this.OnSelectEnd = function()
     {
-    }
+    };
 }
 
 // заглушка

@@ -165,11 +165,15 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
                 tx = x;
                 ty = y;
             }
-            var hit_to_adj = selected_objects[0].hitToAdjustment(tx, ty);
-            if(hit_to_adj.hit)
+            
+            if(selected_objects[0].canChangeAdjustments())
             {
-                ret = drawingObjectsController.handleAdjustmentHit(hit_to_adj, selected_objects[0], group, pageIndex);
-                drawing = selected_objects[0];
+                var hit_to_adj = selected_objects[0].hitToAdjustment(tx, ty);
+                if(hit_to_adj.hit)
+                {
+                    ret = drawingObjectsController.handleAdjustmentHit(hit_to_adj, selected_objects[0], group, pageIndex);
+                    drawing = selected_objects[0];
+                }
             }
         }
     }
@@ -277,7 +281,7 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
                 var Coords              =  drawingObjectsController.getDrawingDocument().ConvertCoordsToCursorWR(drawing.bounds.x, drawing.bounds.y, pageIndex, null);
                 MMData.X_abs            = Coords.X - 5;
                 MMData.Y_abs            = Coords.Y;
-                MMData.Type             = AscCommon.c_oAscMouseMoveDataTypes.LockedObject;
+                MMData.Type             = Asc.c_oAscMouseMoveDataTypes.LockedObject;
                 MMData.UserId           = drawing.Lock.Get_UserId();
                 MMData.HaveChanges      = drawing.Lock.Have_Changes();
                 editor.sync_MouseMoveCallback(MMData);
@@ -296,6 +300,12 @@ function handleFloatObjects(drawingObjectsController, drawingArr, e, x, y, group
         drawing = drawingArr[i];
         switch(drawing.getObjectType())
         {
+
+            case AscDFH.historyitem_type_SlicerView:
+            {
+                ret = handleSlicer(drawing, drawingObjectsController, e, x, y, group, pageIndex, bWord);
+                break;
+            }
             case AscDFH.historyitem_type_Shape:
             case AscDFH.historyitem_type_ImageShape:
             case AscDFH.historyitem_type_OleObject:
@@ -333,7 +343,7 @@ function handleFloatObjects(drawingObjectsController, drawingArr, e, x, y, group
                     var Coords              =  drawingObjectsController.getDrawingDocument().ConvertCoordsToCursorWR(drawing.bounds.x, drawing.bounds.y, pageIndex, null);
                     MMData.X_abs            = Coords.X - 5;
                     MMData.Y_abs            = Coords.Y;
-                    MMData.Type             = AscCommon.c_oAscMouseMoveDataTypes.LockedObject;
+                    MMData.Type             = Asc.c_oAscMouseMoveDataTypes.LockedObject;
                     MMData.UserId           = drawing.Lock.Get_UserId();
                     MMData.HaveChanges      = drawing.Lock.Have_Changes();
                     editor.sync_MouseMoveCallback(MMData);
@@ -344,6 +354,60 @@ function handleFloatObjects(drawingObjectsController, drawingArr, e, x, y, group
     }
     return ret;
 }
+    
+    function handleSlicer(drawing, drawingObjectsController, e, x, y, group, pageIndex, bWord)
+    {
+        if(drawingObjectsController.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
+        {
+            var bRet = drawing.onMouseDown(e, x, y);
+            if(!bRet)
+            {
+                return handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pageIndex, bWord);
+
+            }
+            else
+            {
+                drawingObjectsController.changeCurrentState(new AscFormat.SlicerState(drawingObjectsController, drawing));
+            }
+            return bRet;
+        }
+        else
+        {
+            var oCursorInfo = drawing.getCursorInfo(e, x, y);
+            if(oCursorInfo)
+            {
+                return oCursorInfo;
+            }
+            return handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pageIndex, bWord);
+        }
+    }
+    
+    function handleSlicerInGroup(drawingObjectsController, drawing, shape, e, x, y, pageIndex, bWord)
+    {
+        if(drawingObjectsController.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
+        {
+            var bRet = shape.onMouseDown(e, x, y);
+            if(!bRet)
+            {
+                return handleShapeImageInGroup(drawingObjectsController, drawing, shape, e, x, y, pageIndex, bWord);
+
+            }
+            else
+            {
+                drawingObjectsController.changeCurrentState(new AscFormat.SlicerState(drawingObjectsController, shape));
+            }
+            return bRet;
+        }
+        else
+        {
+            var oCursorInfo = shape.getCursorInfo(e, x, y);
+            if(oCursorInfo)
+            {
+                return oCursorInfo;
+            }
+            return handleShapeImageInGroup(drawingObjectsController, drawing, shape, e, x, y, pageIndex, bWord);
+        }
+    }
 
 function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pageIndex, bWord)
 {
@@ -406,7 +470,7 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
         {
             if(!AscFormat.fCheckObjectHyperlink(drawing,x, y))
             {
-                return false
+                return false;
             }
         }
         var oTextObject = AscFormat.getTargetTextObject(drawingObjectsController);
@@ -491,6 +555,15 @@ function handleGroup(drawing, drawingObjectsController, e, x, y, group, pageInde
         var cur_grouped_object = grouped_objects[j];
         switch (cur_grouped_object.getObjectType())
         {
+            case AscDFH.historyitem_type_SlicerView:
+            {
+                ret = handleSlicerInGroup(drawingObjectsController, drawing, cur_grouped_object, e, x, y, pageIndex, bWord);
+                if(ret)
+                {
+                    return ret;
+                }
+                break;
+            }
             case AscDFH.historyitem_type_Shape:
             case AscDFH.historyitem_type_ImageShape:
             case AscDFH.historyitem_type_OleObject:

@@ -45,7 +45,7 @@ var c_oAscSectionBreakType    = Asc.c_oAscSectionBreakType;
  */
 Paragraph.prototype.Recalculate_FastWholeParagraph = function()
 {
-    if (this.Pages.length <= 0)
+    if (this.Pages.length <= 0 || undefined === this.Parent)
         return [];
 
     if (true === this.Parent.IsHdrFtr(false))
@@ -60,8 +60,12 @@ Paragraph.prototype.Recalculate_FastWholeParagraph = function()
 
     // TODO: Отключаем это ускорение в таблицах, т.к. в таблицах и так есть свое ускорение. Но можно и это ускорение
     // подключить, для этого надо проверять изменились ли MinMax ширины и набираем ли мы в строке заголовков.
-    if (undefined === this.Parent || true === this.Parent.IsTableCellContent())
-        return [];
+	var oCell = this.Parent.IsTableCellContent(true);
+    if (oCell && oCell.GetTable())
+	{
+		if (tbllayout_AutoFit === oCell.GetTable().Get_CompiledPr(false).TablePr.TableLayout || oCell.IsInHeader(true))
+			return [];
+	}
 
     // Если изменения происходят в специальном пустом параграфе-конце секции, тогда запускаем обычный пересчет
     if (this.bFromDocument && this.LogicDocument && (!this.LogicDocument.Pages[this.Get_StartPage_Absolute()] || true === this.LogicDocument.Pages[this.Get_StartPage_Absolute()].Check_EndSectionPara(this)))
@@ -389,6 +393,9 @@ Paragraph.prototype.Recalculate_FastRange = function(SimpleChanges)
  */
 Paragraph.prototype.Recalculate_Page = function(CurPage)
 {
+	if (0 === CurPage)
+		this.CalculatedFrame = null;
+
     this.Clear_NearestPosArray();
 
     // Во время пересчета сбрасываем привязку курсора к строке.
@@ -409,6 +416,9 @@ Paragraph.prototype.Recalculate_Page = function(CurPage)
 
     if (RecalcResult & recalcresult_NextElement && window['AscCommon'].g_specialPasteHelper && window['AscCommon'].g_specialPasteHelper.showButtonIdParagraph === this.GetId())
 		window['AscCommon'].g_specialPasteHelper.SpecialPasteButtonById_Show();
+
+    if (RecalcResult & recalcresult_NextElement)
+		this.UpdateLineNumbersInfo();
 
     return RecalcResult;
 };
@@ -1548,7 +1558,7 @@ Paragraph.prototype.private_RecalculateLineBottomBound = function(CurLine, CurPa
 
     // Сначала проверяем не нужно ли сделать перенос страницы в данном месте
     // Перенос не делаем, если это первая строка на новой странице
-    if (true === this.Use_YLimit()
+    if (true === this.UseLimit()
 		&& (Top > YLimit || Bottom2 > YLimit)
 		&& (CurLine != this.Pages[CurPage].FirstLine
 		|| false === bNoFootnotes
@@ -3375,7 +3385,7 @@ CParagraphRecalculateStateWrap.prototype =
             var FirstTextPr = Para.Get_FirstTextPr2();
 
 
-            if (Bullet.Get_Type() >= numbering_presentationnumfrmt_AlphaLcParenR)
+            if (Bullet.IsAlpha())
             {
                 if(BulletNum > 780)
                 {
@@ -3393,7 +3403,7 @@ CParagraphRecalculateStateWrap.prototype =
             NumberingItem.Measure(g_oTextMeasurer, FirstTextPr, Para.Get_Theme(), Para.Get_ColorMap());
 
 
-            if ( numbering_presentationnumfrmt_None != Bullet.Get_Type() )
+            if ( !Bullet.IsNone() )
             {
                 if ( ParaPr.Ind.FirstLine < 0 )
                     NumberingItem.WidthVisible = Math.max( NumberingItem.Width, Para.Pages[CurPage].X + ParaPr.Ind.Left + ParaPr.Ind.FirstLine - X, Para.Pages[CurPage].X + ParaPr.Ind.Left - X );

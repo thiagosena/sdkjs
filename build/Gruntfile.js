@@ -76,7 +76,7 @@ module.exports = function(grunt) {
 	function writeScripts(config, name) {
 		const develop = '../develop/sdkjs/';
 		const fileName = 'scripts.js';
-		const files = ['../common/applyDocumentChanges.js', '../common/AllFonts.js'].concat(getFilesMin(config), getFilesAll(config));
+		const files = ['../vendor/polyfill.js', '../common/applyDocumentChanges.js', '../common/AllFonts.js'].concat(getFilesMin(config), getFilesAll(config));
 		fixUrl(files, '../../../../sdkjs/build/');
 
 		grunt.file.write(path.join(develop, name, fileName), 'var sdk_scripts = [\n\t"' + files.join('",\n\t"') + '"\n];');
@@ -174,6 +174,7 @@ module.exports = function(grunt) {
 	const path = require('path');
 	const level = grunt.option('level') || 'ADVANCED';
 	const formatting = grunt.option('formatting') || '';
+	const beta = grunt.option('beta') || 'false';
 
 	require('google-closure-compiler').grunt(grunt, {
 		platform: 'java',
@@ -341,6 +342,15 @@ module.exports = function(grunt) {
 			separator: splitLine,
 			prefix: ["sdk-all-min", "sdk-all"]
 		};
+		
+		let copyPolyfill = {};
+		if (grunt.option('copy-polyfill')) {
+			copyPolyfill = {
+				expand: true,
+				src: polyfill,
+				dest: '../vendor/'
+			};
+		}
 
 		const concatSdk = {files:{}};
 		const concatSdkFiles = concatSdk['files'];
@@ -383,7 +393,8 @@ module.exports = function(grunt) {
 									AppCopyright: process.env['APP_COPYRIGHT'] || appCopyright,
 									PublisherUrl: process.env['PUBLISHER_URL'] || publisherUrl,
 									Version: process.env['PRODUCT_VERSION'] || '0.0.0',
-									Build: process.env['BUILD_NUMBER'] || '0'
+									Build: process.env['BUILD_NUMBER'] || '0',
+									Beta: beta
 								}
 							}
 						]
@@ -397,22 +408,8 @@ module.exports = function(grunt) {
 					]
 				}
 			},
-			clean: {
-				tmp: {
-					options: {
-						force: true
-					},
-					src: [
-						polyfill,
-						fontsWasm,
-						fontsJs,
-						wordJs,
-						cellJs,
-						slideJs
-					]
-				}
-			},
 			copy: {
+				polyfill: copyPolyfill,
 				sdkjs: {
 					files: [
 						{
@@ -443,6 +440,21 @@ module.exports = function(grunt) {
 						}
 					]
 				}
+			},
+			clean: {
+				tmp: {
+					options: {
+						force: true
+					},
+					src: [
+						polyfill,
+						fontsWasm,
+						fontsJs,
+						wordJs,
+						cellJs,
+						slideJs
+					]
+				}
 			}
 		})
 	});
@@ -468,6 +480,6 @@ module.exports = function(grunt) {
 		writeScripts(configs.cell['sdk'], 'cell');
 		writeScripts(configs.slide['sdk'], 'slide');
 	});
-	grunt.registerTask('default', ['build-sdk', 'concat', 'closure-compiler', 'clean', 'license', 'splitfile', 'concat', 'replace', 'clean', 'copy']);
+	grunt.registerTask('default', ['build-sdk', 'concat', 'closure-compiler', 'clean', 'license', 'splitfile', 'concat', 'replace', 'copy', 'clean']);
 	grunt.registerTask('develop', ['clean-develop', 'clean', 'build-develop']);
 };

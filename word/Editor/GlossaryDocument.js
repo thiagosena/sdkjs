@@ -41,7 +41,8 @@ var c_oAscDefaultPlaceholderName = {
 	Text     : "DefaultPlaceholder_TEXT",
 	List     : "DefaultPlaceholder_LIST",
 	DateTime : "DefaultPlaceholder_DATE",
-	Equation : "DefaultPlaceholder_EQUATION"
+	Equation : "DefaultPlaceholder_EQUATION",
+	TextForm : "DefaultPlaceholder_TEXTFORM"
 };
 
 /**
@@ -62,9 +63,10 @@ function CGlossaryDocument(oLogicDocument)
 	// Инициализировать нужно сразу, чтобы не было проблем с совместным редактированием
 	this.DefaultPlaceholder = {
 		Text     : this.private_CreateDefaultPlaceholder(c_oAscDefaultPlaceholderName.Text, AscCommon.translateManager.getValue("Your text here")),
-		List     : this.private_CreateDefaultPlaceholder(c_oAscDefaultPlaceholderName.List, AscCommon.translateManager.getValue("Choose an item.")),
-		DateTime : this.private_CreateDefaultPlaceholder(c_oAscDefaultPlaceholderName.DateTime, AscCommon.translateManager.getValue("Enter a date.")),
-		Equation : this.private_CreateDefaultPlaceholder(c_oAscDefaultPlaceholderName.Equation, AscCommon.translateManager.getValue("Type equation here."))
+		List     : this.private_CreateDefaultPlaceholder(c_oAscDefaultPlaceholderName.List, AscCommon.translateManager.getValue("Choose an item")),
+		DateTime : this.private_CreateDefaultPlaceholder(c_oAscDefaultPlaceholderName.DateTime, AscCommon.translateManager.getValue("Enter a date")),
+		Equation : this.private_CreateDefaultPlaceholder(c_oAscDefaultPlaceholderName.Equation, AscCommon.translateManager.getValue("Type equation here")),
+		TextForm : this.private_CreateDefaultTextFormPlaceholder()
 	};
 
 	oLogicDocument.GetTableId().Add(this, this.Id);
@@ -160,6 +162,14 @@ CGlossaryDocument.prototype.GetDefaultPlaceholderEquation = function()
 	return this.DefaultPlaceholder.Equation;
 };
 /**
+ * Получаем дефолтовый контент для плейсхолдера для текстовых форм
+ * @returns {CDocPart}
+ */
+CGlossaryDocument.prototype.GetDefaultPlaceholderTextForm = function()
+{
+	return this.DefaultPlaceholder.TextForm;
+};
+/**
  * @param sName
  * @param sText
  * @returns {CDocPart}
@@ -172,6 +182,24 @@ CGlossaryDocument.prototype.private_CreateDefaultPlaceholder = function(sName, s
 	var oRun       = new ParaRun();
 	oParagraph.AddToContent(0, oRun);
 	oRun.AddText(sText);
+
+	oDocPart.SetDocPartBehavior(c_oAscDocPartBehavior.Content);
+	oDocPart.SetDocPartCategory("Common", c_oAscDocPartGallery.Placeholder);
+	oDocPart.AddDocPartType(c_oAscDocPartType.BBPlcHolder);
+
+	return oDocPart;
+};
+/**
+ * @returns {CDocPart}
+ */
+CGlossaryDocument.prototype.private_CreateDefaultTextFormPlaceholder = function()
+{
+	var oDocPart = this.CreateDocPart(c_oAscDefaultPlaceholderName.TextForm);
+
+	var oParagraph = oDocPart.GetFirstParagraph();
+	var oRun       = new ParaRun();
+	oParagraph.AddToContent(0, oRun);
+	oRun.AddToContent(0, new ParaText(0x0020));
 
 	oDocPart.SetDocPartBehavior(c_oAscDocPartBehavior.Content);
 	oDocPart.SetDocPartCategory("Common", c_oAscDocPartGallery.Placeholder);

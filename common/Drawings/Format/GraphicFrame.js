@@ -69,8 +69,6 @@ function CGraphicFrame()
 
     this.compiledHierarchy = [];
     this.Pages      = [];
-    this.Id = AscCommon.g_oIdCounter.Get_NewId();
-    AscCommon.g_oTableId.Add(this, this.Id);
     this.compiledStyles = [];
     this.recalcInfo =
     {
@@ -243,11 +241,11 @@ CGraphicFrame.prototype.Search = function(Str, Props, SearchEngine, Type)
         }
 };
 
-CGraphicFrame.prototype.Search_GetId = function(bNext, bCurrent)
+CGraphicFrame.prototype.GetSearchElementId = function(bNext, bCurrent)
     {
         if(this.graphicObject)
         {
-            return this.graphicObject.Search_GetId(bNext, bCurrent);
+            return this.graphicObject.GetSearchElementId(bNext, bCurrent);
         }
 
         return null;
@@ -570,15 +568,6 @@ CGraphicFrame.prototype.canRotate = function()
         return false;
 };
 
-CGraphicFrame.prototype.canResize = function()
-    {
-        return true;
-};
-
-CGraphicFrame.prototype.canMove = function()
-    {
-        return true;
-};
 
 CGraphicFrame.prototype.canGroup = function()
     {
@@ -694,7 +683,7 @@ CGraphicFrame.prototype.Check_AutoFit = function()
         return false;
 };
 
-CGraphicFrame.prototype.Is_InTable = function()
+CGraphicFrame.prototype.IsInTable = function()
     {
         return null;
 };
@@ -838,7 +827,7 @@ CGraphicFrame.prototype.deselect = CShape.prototype.deselect;
 CGraphicFrame.prototype.Update_ContentIndexing = function()
 {};
     
-CGraphicFrame.prototype.GetTopDocumentContent = function()
+CGraphicFrame.prototype.GetTopDocumentContent = function(isOneLevel)
 {
     return null;
 };
@@ -1041,12 +1030,6 @@ CGraphicFrame.prototype.setParagraphIndent = function(val)
         {
             this.graphicObject.SetParagraphIndent(val);
         }
-};
-
-CGraphicFrame.prototype.setParent2 = function(parent)
-    {
-        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_GraphicFrameSetSetParent, this.parent, parent));
-        this.parent = parent;
 };
 
 CGraphicFrame.prototype.setWordFlag = function(bPresentation, Document)
@@ -1304,6 +1287,11 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
             }
         }
         return ret;
+    };
+    CGraphicFrame.prototype.documentCreateFontMap = function(oMap) {
+        if(this.graphicObject && this.graphicObject.Document_CreateFontMap) {
+            this.graphicObject.Document_CreateFontMap(oMap);
+        }
     };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};

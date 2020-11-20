@@ -43,7 +43,7 @@
 
 	// Import
 	var prot;
-	var c_oAscMouseMoveDataTypes = AscCommon.c_oAscMouseMoveDataTypes;
+	var c_oAscMouseMoveDataTypes = Asc.c_oAscMouseMoveDataTypes;
 
 	var c_oAscColor = Asc.c_oAscColor;
 	var c_oAscFill = Asc.c_oAscFill;
@@ -155,6 +155,12 @@
 			dst.prototype[k] = src.prototype[k];
 		}
 	}
+
+	function isFileBuild()
+	{
+		return window["NATIVE_EDITOR_ENJINE"] && !window["IS_NATIVE_EDITOR"] && !window["DoctRendererMode"];
+	}
+
 
 	var c_oLicenseResult = {
 		Error         : 1,
@@ -281,6 +287,9 @@
 		this.isAnalyticsEnable = false;
 		this.buildVersion = null;
 		this.buildNumber = null;
+
+		this.betaVersion = '@@Beta';
+
 		return this;
 	}
 
@@ -322,6 +331,9 @@
 	};
 	asc_CAscEditorPermissions.prototype.asc_getBuildNumber = function () {
 		return this.buildNumber;
+	};
+	asc_CAscEditorPermissions.prototype.asc_getIsBeta = function () {
+		return this.betaVersion === 'true';
 	};
 
 	asc_CAscEditorPermissions.prototype.setLicenseType = function (v) {
@@ -706,6 +718,7 @@
 		this.smooth = null;
 		this.showHorAxis = null;
 		this.showVerAxis = null;
+		this.chartSpace = null;
 	}
 
 	asc_ChartSettings.prototype = {
@@ -844,15 +857,6 @@
 				this.aRanges.length = 0;
 			}
 		},
-		putRanges2: function(aRanges) {
-			this.aRanges.length = 0;
-
-			if(Array.isArray(aRanges)) {
-				for(var i = 0; i < aRanges.length; ++i) {
-					this.aRanges.push(aRanges[i].asc_getName());
-				}
-			}
-		},
 
 		getRanges: function() {
 			return this.aRanges;
@@ -879,9 +883,28 @@
 			this.aRanges[0] = range;
 		},
 
+		setRange: function(sRange) {
+			if(this.chartSpace) {
+				this.chartSpace.setRange(sRange);
+				this.updateChart();
+			}
+		},
+
+		isValidRange: function(sRange) {
+			if(sRange === "") {
+				return Asc.c_oAscError.ID.No;
+			}
+			var sCheck = sRange;
+			if(sRange[0] === "=") {
+				sCheck = sRange.slice(1);
+			}
+			var aRanges = AscFormat.fParseChartFormula(sCheck);
+			return (aRanges.length !== 0) ? Asc.c_oAscError.ID.No : Asc.c_oAscError.ID.DataRangeError;
+		},
+
 		getRange: function () {
-			if(this.aRanges.length > 0) {
-				return this.aRanges[0];
+			if(this.chartSpace) {
+				return this.chartSpace.getCommonRange();
 			}
 			return null;
 		},
@@ -1284,6 +1307,99 @@
 			this.showVerAxis = v;
 		}, getShowVerAxis: function () {
 			return this.showVerAxis;
+		},
+
+		getSeries: function() {
+			if(this.chartSpace) {
+				return this.chartSpace.getAllSeries();
+			}
+			return [];
+		},
+
+		getCatValues: function() {
+			if(this.chartSpace) {
+				return this.chartSpace.getCatValues();
+			}
+			return [];
+		},
+
+		getCatFormula: function() {
+			if(this.chartSpace) {
+				return this.chartSpace.getCatFormula();
+			}
+			return "";
+		},
+
+		setCatFormula: function(sFormula) {
+			if(this.chartSpace) {
+				return this.chartSpace.setCatFormula(sFormula);
+			}
+			this.updateChart();
+		},
+
+		isValidCatFormula: function(sFormula) {
+			if(sFormula === "" || sFormula === null) {
+				return Asc.c_oAscError.ID.No;
+			}
+			return AscFormat.ExecuteNoHistory(function(){
+				var oCat = new AscFormat.CCat();
+				return oCat.setValues(sFormula).getError();
+			}, this, []);
+		},
+
+		switchRowCol: function() {
+			if(this.chartSpace) {
+				this.chartSpace.switchRowCol();
+			}
+			this.updateChart();
+		},
+
+		addSeries: function() {
+			var oRet = null;
+			if(this.chartSpace) {
+				oRet = this.chartSpace.addSeries(null, "={1}");
+			}
+			this.updateChart();
+			return oRet;
+		},
+
+		addScatterSeries: function() {
+			var oRet = null;
+			if(this.chartSpace) {
+				oRet = this.chartSpace.addScatterSeries(null, null, "={1}");
+			}
+			this.updateChart();
+			return oRet;
+		},
+
+		startEdit: function() {
+			AscCommon.History.Create_NewPoint();
+			AscCommon.History.StartTransaction();
+		},
+		endEdit: function() {
+			AscCommon.History.EndTransaction();
+			this.updateChart();
+		},
+		cancelEdit: function() {
+			AscCommon.History.EndTransaction();
+			AscCommon.History.Undo();
+			this.updateChart();
+		},
+		startEditData: function() {
+			AscCommon.History.SavePointIndex();
+		},
+		cancelEditData: function() {
+			AscCommon.History.UndoToPointIndex();
+			this.updateChart();
+		},
+		endEditData: function() {
+			AscCommon.History.ClearPointIndex();
+			this.updateChart();
+		},
+		updateChart: function() {
+			if(this.chartSpace) {
+				this.chartSpace.onDataUpdate();
+			}
 		}
 	};
 
@@ -1929,99 +2045,11 @@
 			this.ListType = (undefined != obj.ListType) ? obj.ListType : undefined;
 			this.OutlineLvl = (undefined != obj.OutlineLvl) ? obj.OutlineLvl : undefined;
 			this.OutlineLvlStyle = (undefined != obj.OutlineLvlStyle) ? obj.OutlineLvlStyle : false;
-			this.BulletSize = undefined;
-			this.BulletColor = undefined;
-			this.NumStartAt = undefined;
-			this.BulletFont = undefined;
-			this.BulletSymbol = undefined;
+			this.SuppressLineNumbers = undefined !== obj.SuppressLineNumbers ? obj.SuppressLineNumbers : false;
+			this.Bullet = obj.Bullet;
 			var oBullet = obj.Bullet;
-			if(oBullet)
-			{
-				var FirstTextPr = obj.FirstTextPr;
-				this.BulletSize = 100;
-				if(oBullet.bulletSize)
-				{
-					switch (oBullet.bulletSize.type)
-					{
-						case AscFormat.BULLET_TYPE_SIZE_NONE:
-						{
-							break;
-						}
-						case AscFormat.BULLET_TYPE_SIZE_TX:
-						{
-							break;
-						}
-						case AscFormat.BULLET_TYPE_SIZE_PCT:
-						{
-							this.BulletSize = oBullet.bulletSize.val / 1000.0;
-							break;
-						}
-						case AscFormat.BULLET_TYPE_SIZE_PTS:
-						{
-							break;
-						}
-					}
-				}
-				this.BulletColor = CreateAscColorCustom(0, 0, 0);
-				if(oBullet.bulletColor)
-				{
-					if(oBullet.bulletColor.UniColor)
-					{
-						this.BulletColor = CreateAscColor(oBullet.bulletColor.UniColor);
-					}
-				}
-				else 
-				{
-					if(FirstTextPr && FirstTextPr.Unifill)
-					{
-						if(FirstTextPr.Unifill.fill instanceof AscFormat.CSolidFill && FirstTextPr.Unifill.fill.color)
-						{
-							this.BulletColor = CreateAscColor(FirstTextPr.Unifill.fill.color);
-						}
-						else
-						{
-							var RGBA = FirstTextPr.Unifill.getRGBAColor();
-							this.BulletColor = CreateAscColorCustom(RGBA.R, RGBA.G, RGBA.B);
-						}
-					}
-					else
-					{
-						this.BulletColor = CreateAscColorCustom(0, 0, 0);
-					}
-				}
-
-				this.BulletFont = "";
-				if(oBullet.bulletTypeface
-					&& oBullet.bulletTypeface.type === AscFormat.BULLET_TYPE_TYPEFACE_BUFONT
-					&& typeof oBullet.bulletTypeface.typeface === "string"
-					&& oBullet.bulletTypeface.typeface.length > 0)
-				{
-					this.BulletFont = oBullet.bulletTypeface.typeface;
-				}
-				else
-				{
-					if(FirstTextPr && FirstTextPr.FontFamily && typeof FirstTextPr.FontFamily.Name === "string"
-						&& FirstTextPr.FontFamily.Name.length > 0)
-					{
-						this.BulletFont = FirstTextPr.FontFamily.Name;
-					}
-				}
-
-
-				if(oBullet.bulletType)
-				{
-					if(oBullet.bulletType.AutoNumType > 0)
-					{
-						this.NumStartAt = AscFormat.isRealNumber(oBullet.bulletType.startAt) ? Math.max(1, oBullet.bulletType.startAt) : null;
-					}
-					else
-					{
-						if(oBullet.bulletType.type === AscFormat.BULLET_TYPE_BULLET_CHAR)
-						{
-							this.BulletSymbol = oBullet.bulletType.Char;
-						}
-					}
-				}
+			if(oBullet) {
+				oBullet.FirstTextPr = obj.FirstTextPr;
 			}
 
 			this.CanDeleteBlockCC  = undefined !== obj.CanDeleteBlockCC ? obj.CanDeleteBlockCC : true;
@@ -2072,11 +2100,8 @@
 			this.ListType = undefined;
 			this.OutlineLvl = undefined;
 			this.OutlineLvlStyle = false;
-			this.BulletSize = undefined;
-			this.BulletColor = undefined;
-			this.NumStartAt = undefined;
-			this.BulletFont = undefined;
-			this.BulletSymbol = undefined;
+			this.SuppressLineNumbers = false;
+			this.Bullet = undefined;
 
 			this.CanDeleteBlockCC  = true;
 			this.CanEditBlockCC    = true;
@@ -2089,130 +2114,222 @@
 
 		asc_getContextualSpacing: function () {
 			return this.ContextualSpacing;
-		}, asc_putContextualSpacing: function (v) {
+		},
+		asc_putContextualSpacing: function (v) {
 			this.ContextualSpacing = v;
-		}, asc_getInd: function () {
+		},
+		asc_getInd: function () {
 			return this.Ind;
-		}, asc_putInd: function (v) {
+		},
+		asc_putInd: function (v) {
 			this.Ind = v;
-		}, asc_getJc: function () {
+		},
+		asc_getJc: function () {
 			return this.Jc;
-		}, asc_putJc: function (v) {
+		},
+		asc_putJc: function (v) {
 			this.Jc = v;
-		}, asc_getKeepLines: function () {
+		},
+		asc_getKeepLines: function () {
 			return this.KeepLines;
-		}, asc_putKeepLines: function (v) {
+		},
+		asc_putKeepLines: function (v) {
 			this.KeepLines = v;
-		}, asc_getKeepNext: function () {
+		},
+		asc_getKeepNext: function () {
 			return this.KeepNext;
-		}, asc_putKeepNext: function (v) {
+		},
+		asc_putKeepNext: function (v) {
 			this.KeepNext = v;
-		}, asc_getPageBreakBefore: function () {
+		},
+		asc_getPageBreakBefore: function () {
 			return this.PageBreakBefore;
-		}, asc_putPageBreakBefore: function (v) {
+		},
+		asc_putPageBreakBefore: function (v) {
 			this.PageBreakBefore = v;
-		}, asc_getWidowControl: function () {
+		},
+		asc_getWidowControl: function () {
 			return this.WidowControl;
-		}, asc_putWidowControl: function (v) {
+		},
+		asc_putWidowControl: function (v) {
 			this.WidowControl = v;
-		}, asc_getSpacing: function () {
+		},
+		asc_getSpacing: function () {
 			return this.Spacing;
-		}, asc_putSpacing: function (v) {
+		},
+		asc_putSpacing: function (v) {
 			this.Spacing = v;
-		}, asc_getBorders: function () {
+		},
+		asc_getBorders: function () {
 			return this.Brd;
-		}, asc_putBorders: function (v) {
+		},
+		asc_putBorders: function (v) {
 			this.Brd = v;
-		}, asc_getShade: function () {
+		},
+		asc_getShade: function () {
 			return this.Shd;
-		}, asc_putShade: function (v) {
+		},
+		asc_putShade: function (v) {
 			this.Shd = v;
-		}, asc_getLocked: function () {
+		},
+		asc_getLocked: function () {
 			return this.Locked;
-		}, asc_getCanAddTable: function () {
+		},
+		asc_getCanAddTable: function () {
 			return this.CanAddTable;
-		}, asc_getSubscript: function () {
+		},
+		asc_getSubscript: function () {
 			return this.Subscript;
-		}, asc_putSubscript: function (v) {
+		},
+		asc_putSubscript: function (v) {
 			this.Subscript = v;
-		}, asc_getSuperscript: function () {
+		},
+		asc_getSuperscript: function () {
 			return this.Superscript;
-		}, asc_putSuperscript: function (v) {
+		},
+		asc_putSuperscript: function (v) {
 			this.Superscript = v;
-		}, asc_getSmallCaps: function () {
+		},
+		asc_getSmallCaps: function () {
 			return this.SmallCaps;
-		}, asc_putSmallCaps: function (v) {
+		},
+		asc_putSmallCaps: function (v) {
 			this.SmallCaps = v;
-		}, asc_getAllCaps: function () {
+		},
+		asc_getAllCaps: function () {
 			return this.AllCaps;
-		}, asc_putAllCaps: function (v) {
+		},
+		asc_putAllCaps: function (v) {
 			this.AllCaps = v;
-		}, asc_getStrikeout: function () {
+		},
+		asc_getStrikeout: function () {
 			return this.Strikeout;
-		}, asc_putStrikeout: function (v) {
+		},
+		asc_putStrikeout: function (v) {
 			this.Strikeout = v;
-		}, asc_getDStrikeout: function () {
+		},
+		asc_getDStrikeout: function () {
 			return this.DStrikeout;
-		}, asc_putDStrikeout: function (v) {
+		},
+		asc_putDStrikeout: function (v) {
 			this.DStrikeout = v;
-		}, asc_getTextSpacing: function () {
+		},
+		asc_getTextSpacing: function () {
 			return this.TextSpacing;
-		}, asc_putTextSpacing: function (v) {
+		},
+		asc_putTextSpacing: function (v) {
 			this.TextSpacing = v;
-		}, asc_getPosition: function () {
+		},
+		asc_getPosition: function () {
 			return this.Position;
-		}, asc_putPosition: function (v) {
+		},
+		asc_putPosition: function (v) {
 			this.Position = v;
-		}, asc_getTabs: function () {
+		},
+		asc_getTabs: function () {
 			return this.Tabs;
-		}, asc_putTabs: function (v) {
+		},
+		asc_putTabs: function (v) {
 			this.Tabs = v;
-		}, asc_getDefaultTab: function () {
+		},
+		asc_getDefaultTab: function () {
 			return this.DefaultTab;
-		}, asc_putDefaultTab: function (v) {
+		},
+		asc_putDefaultTab: function (v) {
 			this.DefaultTab = v;
 		},
-
 		asc_getFramePr: function () {
 			return this.FramePr;
-		}, asc_putFramePr: function (v) {
-			this.FramePr = v;
-		}, asc_getCanAddDropCap: function () {
-			return this.CanAddDropCap;
-		}, asc_getCanAddImage: function () {
-			return this.CanAddImage;
-		}, asc_getOutlineLvl: function() {
-			return this.OutlineLvl;
-		}, asc_putOutLineLvl: function(nLvl) {
-			this.OutlineLvl = nLvl;
-		}, asc_getOutlineLvlStyle: function() {
-			return this.OutlineLvlStyle;
-		}, asc_putBulletSize: function(size) {
-			this.BulletSize = size;
-		}, asc_getBulletSize: function() {
-			return this.BulletSize;
-		}, asc_putBulletColor: function(color) {
-			this.BulletColor = color;
-		}, asc_getBulletColor: function() {
-			return this.BulletColor;
-		}, asc_putNumStartAt: function(NumStartAt) {
-			this.NumStartAt = NumStartAt;
-		}, asc_getNumStartAt: function() {
-			return this.NumStartAt;
 		},
-
+		asc_putFramePr: function (v) {
+			this.FramePr = v;
+		},
+		asc_getCanAddDropCap: function () {
+			return this.CanAddDropCap;
+		},
+		asc_getCanAddImage: function () {
+			return this.CanAddImage;
+		},
+		asc_getOutlineLvl: function() {
+			return this.OutlineLvl;
+		},
+		asc_putOutLineLvl: function(nLvl) {
+			this.OutlineLvl = nLvl;
+		},
+		asc_getOutlineLvlStyle: function() {
+			return this.OutlineLvlStyle;
+		},
+		asc_getSuppressLineNumbers: function() {
+			return this.SuppressLineNumbers;
+		},
+		asc_putSuppressLineNumbers: function(isSuppress) {
+			this.SuppressLineNumbers = isSuppress;
+		},
+		asc_putBullet: function(val) {
+			this.Bullet = val;
+		},
+		asc_getBullet: function() {
+			return this.Bullet;
+		},
+		asc_putBulletSize: function(size) {
+			if(!this.Bullet) {
+				this.Bullet = new Asc.asc_CBullet();
+			}
+			this.Bullet.asc_putSize(size);
+		},
+		asc_getBulletSize: function() {
+			if(!this.Bullet) {
+				return undefined;
+			}
+			return this.Bullet.asc_getSize();
+		},
+		asc_putBulletColor: function(color) {
+			if(!this.Bullet) {
+				this.Bullet = new Asc.asc_CBullet();
+			}
+			this.Bullet.asc_putColor(color);
+		},
+		asc_getBulletColor: function() {
+			if(!this.Bullet) {
+				return undefined;
+			}
+			return this.Bullet.asc_getColor();
+		},
+		asc_putNumStartAt: function(NumStartAt) {
+			if(!this.Bullet) {
+				this.Bullet = new Asc.asc_CBullet();
+			}
+			this.Bullet.asc_putNumStartAt(NumStartAt);
+		},
+		asc_getNumStartAt: function() {
+			if(!this.Bullet) {
+				return undefined;
+			}
+			return this.Bullet.asc_getNumStartAt();
+		},
 		asc_getBulletFont: function() {
-			return this.BulletFont;
+			if(!this.Bullet) {
+				return undefined;
+			}
+			return this.Bullet.asc_getFont();
 		},
 		asc_putBulletFont: function(v) {
-			this.BulletFont = v;
+			if(!this.Bullet) {
+				this.Bullet = new Asc.asc_CBullet();
+			}
+			this.Bullet.asc_putFont(v);
 		},
-
 		asc_getBulletSymbol: function() {
-			return this.BulletSymbol;
+			if(!this.Bullet) {
+				return undefined;
+			}
+			return this.Bullet.asc_getSymbol();
 		},
 		asc_putBulletSymbol: function(v) {
-			this.BulletSymbol = v;
+			if(!this.Bullet) {
+				this.Bullet = new Asc.asc_CBullet();
+			}
+			this.Bullet.asc_putSymbol(v);
 		},
 		asc_canDeleteBlockContentControl: function() {
 			return this.CanDeleteBlockCC;
@@ -2694,6 +2811,7 @@
 
 			this.ChartProperties = (undefined != obj.ChartProperties) ? obj.ChartProperties : null;
 			this.ShapeProperties = (undefined != obj.ShapeProperties) ? obj.ShapeProperties : null;
+			this.SlicerProperties = (undefined != obj.SlicerProperties) ? obj.SlicerProperties : null;
 
 			this.ChangeLevel = (undefined != obj.ChangeLevel) ? obj.ChangeLevel : null;
 			this.Group = (obj.Group != undefined) ? obj.Group : null;
@@ -2746,6 +2864,7 @@
 
 			this.ChartProperties = null;
 			this.ShapeProperties = null;
+			this.SlicerProperties = null;
 
 			this.ChangeLevel = null;
 			this.Group = null;
@@ -2919,6 +3038,10 @@
 			return this.ShapeProperties;
 		}, asc_putShapeProperties: function (v) {
 			this.ShapeProperties = v;
+		}, asc_getSlicerProperties: function() {
+			return this.SlicerProperties;
+		}, asc_putSlicerProperties: function(v) {
+			this.SlicerProperties = v;
 		},
 
 		asc_getOriginSize: function (api)
@@ -3456,6 +3579,10 @@
 	CMouseMoveData.prototype.get_FootnoteNumber = function()
 	{
 		return this.Number;
+	};
+	CMouseMoveData.prototype.get_FormHelpText = function()
+	{
+		return this.Text;
 	};
 
 
@@ -4077,7 +4204,7 @@
 					else{
 						oUnifill = AscFormat.CreteSolidFillRGB(0, 0, 0);
 					}
-					oShape.spPr.setLn(AscFormat.CreatePenFromParams(oUnifill, undefined, undefined, undefined, undefined, AscFormat.isRealNumber(obj['stroke-width']) ? obj['stroke-width'] : 12700.0/36000.0))
+					oShape.spPr.setLn(AscFormat.CreatePenFromParams(oUnifill, undefined, undefined, undefined, undefined, AscFormat.isRealNumber(obj['stroke-width']) ? obj['stroke-width'] : 12700.0/36000.0));
 				}
 
 				if(bWord){
@@ -4319,6 +4446,7 @@
 	{
 		this.description = "";
 		this.url         = "";
+		this.help        = "";
 		this.baseUrl     = "";
 		this.index       = 0;     // сверху не выставляем. оттуда в каком порядке пришли - в таком порядке и работают
 
@@ -4361,6 +4489,14 @@
 	CPluginVariation.prototype["set_Url"]         = function(value)
 	{
 		this.url = value;
+	};
+	CPluginVariation.prototype["get_Help"]         = function()
+	{
+		return this.help;
+	};
+	CPluginVariation.prototype["set_Help"]         = function(value)
+	{
+		this.help = value;
 	};
 
 	CPluginVariation.prototype["get_Icons"] = function()
@@ -4500,6 +4636,7 @@
 		var _object            = {};
 		_object["description"] = this.description;
 		_object["url"]         = this.url;
+		_object["help"]        = this.help;
 		_object["index"]       = this.index;
 
 		_object["icons"]          = this.icons;
@@ -4528,6 +4665,7 @@
 	{
 		this.description = (_object["description"] != null) ? _object["description"] : this.description;
 		this.url         = (_object["url"] != null) ? _object["url"] : this.url;
+		this.help        = (_object["help"] != null) ? _object["help"] : this.help;
 		this.index       = (_object["index"] != null) ? _object["index"] : this.index;
 
 		this.icons          = (_object["icons"] != null) ? _object["icons"] : this.icons;
@@ -4712,6 +4850,7 @@
 	prot["asc_getRights"] = prot.asc_getRights;
 	prot["asc_getBuildVersion"] = prot.asc_getBuildVersion;
 	prot["asc_getBuildNumber"] = prot.asc_getBuildNumber;
+	prot["asc_getIsBeta"] = prot.asc_getIsBeta;
 
 	window["AscCommon"].asc_ValAxisSettings = asc_ValAxisSettings;
 	prot = asc_ValAxisSettings.prototype;
@@ -4836,6 +4975,26 @@
 	prot["getShowHorAxis"] = prot.getShowHorAxis;
 	prot["putShowVerAxis"] = prot.putShowVerAxis;
 	prot["getShowVerAxis"] = prot.getShowVerAxis;
+	prot["getSeries"] = prot.getSeries;
+	prot["getCatValues"] = prot.getCatValues;
+	prot["switchRowCol"] = prot.switchRowCol;
+	prot["addSeries"] = prot.addSeries;
+	prot["addScatterSeries"] = prot.addScatterSeries;
+	prot["getCatFormula"] = prot.getCatFormula;
+	prot["setCatFormula"] = prot.setCatFormula;
+	prot["isValidCatFormula"] = prot.isValidCatFormula;
+	prot["setRange"] = prot.setRange;
+	prot["isValidRange"] = prot.isValidRange;
+	prot["startEdit"] = prot.startEdit;
+	prot["endEdit"] = prot.endEdit;
+	prot["cancelEdit"] = prot.cancelEdit;
+	prot["startEditData"] = prot.startEditData;
+	prot["cancelEditData"] = prot.cancelEditData;
+	prot["endEditData"] = prot.endEditData;
+
+
+
+
 
 	window["AscCommon"].asc_CRect = asc_CRect;
 	prot = asc_CRect.prototype;
@@ -5049,6 +5208,10 @@
 	prot["get_OutlineLvl"] = prot["asc_getOutlineLvl"] = prot.asc_getOutlineLvl;
 	prot["put_OutlineLvl"] = prot["asc_putOutLineLvl"] = prot.asc_putOutLineLvl;
 	prot["get_OutlineLvlStyle"] = prot["asc_getOutlineLvlStyle"] = prot.asc_getOutlineLvlStyle;
+	prot["get_SuppressLineNumbers"] = prot["asc_getSuppressLineNumbers"] = prot.asc_getSuppressLineNumbers;
+	prot["put_SuppressLineNumbers"] = prot["asc_putSuppressLineNumbers"] = prot.asc_putSuppressLineNumbers;
+	prot["put_Bullet"] = prot["asc_putBullet"] = prot.asc_putBullet;
+	prot["get_Bullet"] = prot["asc_getBullet"] = prot.asc_getBullet;
 	prot["put_BulletSize"] = prot["asc_putBulletSize"] = prot.asc_putBulletSize;
 	prot["get_BulletSize"] = prot["asc_getBulletSize"] = prot.asc_getBulletSize;
 	prot["put_BulletColor"] = prot["asc_putBulletColor"] = prot.asc_putBulletColor;
@@ -5245,6 +5408,8 @@
 	prot["put_ChartProperties"] = prot["asc_putChartProperties"] = prot.asc_putChartProperties;
 	prot["get_ShapeProperties"] = prot["asc_getShapeProperties"] = prot.asc_getShapeProperties;
 	prot["put_ShapeProperties"] = prot["asc_putShapeProperties"] = prot.asc_putShapeProperties;
+	prot["put_SlicerProperties"] = prot["asc_putSlicerProperties"] = prot.asc_putSlicerProperties;
+	prot["get_SlicerProperties"] = prot["asc_getSlicerProperties"] = prot.asc_getSlicerProperties;
 	prot["get_OriginSize"] = prot["asc_getOriginSize"] = prot.asc_getOriginSize;
 	prot["get_PluginGuid"] = prot["asc_getPluginGuid"] = prot.asc_getPluginGuid;
 	prot["put_PluginGuid"] = prot["asc_putPluginGuid"] = prot.asc_putPluginGuid;
@@ -5380,6 +5545,7 @@
 	prot["get_LockedObjectType"] = prot.get_LockedObjectType;
 	prot["get_FootnoteText"] =  prot.get_FootnoteText;
 	prot["get_FootnoteNumber"] = prot.get_FootnoteNumber;
+	prot["get_FormHelpText"] = prot.get_FormHelpText;
 
 	window["Asc"]["asc_CUserInfo"] = window["Asc"].asc_CUserInfo = asc_CUserInfo;
 	prot = asc_CUserInfo.prototype;
@@ -5471,7 +5637,9 @@
     prot["get_Variants"] = prot.get_Variants;
 
     window["AscCommon"].CWatermarkOnDraw = CWatermarkOnDraw;
+    window["AscCommon"].isFileBuild = isFileBuild;
 
 	window["Asc"]["CPluginVariation"] = window["Asc"].CPluginVariation = CPluginVariation;
 	window["Asc"]["CPlugin"] = window["Asc"].CPlugin = CPlugin;
+
 })(window);

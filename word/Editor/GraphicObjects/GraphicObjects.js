@@ -192,6 +192,8 @@ CGraphicObjects.prototype =
         return this.selectedObjects;
     },
 
+    getSelectedArray: DrawingObjectsController.prototype.getSelectedArray,
+
     getTheme: function()
     {
         return this.document.theme;
@@ -1221,6 +1223,16 @@ CGraphicObjects.prototype =
         }
     },
 
+	updateFloatTable : function(table)
+	{
+		var hdr_ftr = table.Table.Parent.IsHdrFtr(true);
+
+		if (!hdr_ftr && this.graphicPages[table.PageNum + table.PageController])
+		{
+			this.graphicPages[table.PageNum + table.PageController].updateFloatTable(table);
+		}
+	},
+
     removeFloatTableById: function(pageIndex, id)
     {
         if(!this.graphicPages[pageIndex])
@@ -1306,7 +1318,7 @@ CGraphicObjects.prototype =
     },
 
 
-    addShapeOnPage: function(sPreset, nPageIndex, dX, dY, dExtX, dExtY)
+    addShapeOnPage: function(sPreset, nPageIndex)
     {
         if ( docpostype_HdrFtr !== this.document.GetDocPosType() || null !== this.document.HdrFtr.CurHdrFtr )
         {
@@ -1329,6 +1341,17 @@ CGraphicObjects.prototype =
                 DocContent.Selection.Start = true;
             }
 
+            var dX, dY, dExtX, dExtY;
+            var oSectPr = this.document.Get_PageLimits(nPageIndex);
+            var oExt = AscFormat.fGetDefaultShapeExtents(sPreset);
+            var dSize = Math.min(oSectPr.XLimit / 2, oSectPr.YLimit / 2);
+            var dScale = dSize/Math.max(oExt.x, oExt.y);
+            dExtX = oExt.x * dScale;
+            dExtY = oExt.y * dScale;
+            dX = (oSectPr.XLimit - oSectPr.X - dExtX) / 2;
+            dX = Math.max(0, dX);
+            dY = (oSectPr.YLimit - oSectPr.Y - dExtY) / 2;
+            dY = Math.max(0, dY);
             this.changeCurrentState(new AscFormat.StartAddNewShape(this, sPreset));
             this.OnMouseDown({}, dX, dY, nPageIndex);
             if(AscFormat.isRealNumber(dExtX) && AscFormat.isRealNumber(dExtY))
@@ -1410,7 +1433,7 @@ CGraphicObjects.prototype =
         var ret = [];
         for(var i = 0; i < tables.length; ++i)
         {
-            if(flowobject_Table === tables[i].Type && tables[i].Table.Parent === docContent)
+            if(tables[i].IsFlowTable() && tables[i].Table.Parent === docContent)
                 ret.push(tables[i]);
         }
         return ret;
@@ -1421,6 +1444,7 @@ CGraphicObjects.prototype =
     getEditorApi: DrawingObjectsController.prototype.getEditorApi,
     resetConnectors: DrawingObjectsController.prototype.resetConnectors,
     checkDlblsPosition: DrawingObjectsController.prototype.checkDlblsPosition,
+    resetChartElementsSelection: DrawingObjectsController.prototype.resetChartElementsSelection,
 
 
     handleChartDoubleClick: function(drawing, chart, e, x, y, pageIndex)
@@ -1841,6 +1865,8 @@ CGraphicObjects.prototype =
         {
             this.drawingDocument.SelectClear();
             this.drawingDocument.TargetEnd();
+			this.drawingDocument.SelectEnabled(true);
+			this.drawingDocument.SelectShow();
         }
     },
 
@@ -2099,17 +2125,17 @@ CGraphicObjects.prototype =
     {
 
         if(this.selectedObjects.length === 0)
-            Info.Set_Drawing(-1);
+            Info.SetDrawing(-1);
 
         var content = this.getTargetDocContent();
         if(content)
         {
-            Info.Set_Drawing(selected_DrawingObjectText);
+            Info.SetDrawing(selected_DrawingObjectText);
             content.GetSelectedElementsInfo(Info);
         }
         else
         {
-            Info.Set_Drawing(selected_DrawingObject);
+            Info.SetDrawing(selected_DrawingObject);
         }
         return Info;
     },
@@ -2148,18 +2174,7 @@ CGraphicObjects.prototype =
         }
     },
 
-    getSelectedText: function(bClearText, oPr)
-    {
-        var content = this.getTargetDocContent();
-        if(content)
-        {
-            return content.GetSelectedText(bClearText, oPr);
-        }
-        else
-        {
-            return "";
-        }
-    },
+    GetSelectedText: DrawingObjectsController.prototype.GetSelectedText,
 
     getCurPosXY: function()
     {
@@ -2660,8 +2675,9 @@ CGraphicObjects.prototype =
         var nPageIndex = objects_for_grouping[0].parent.pageIndex;
         for(i = 0; i < objects_for_grouping.length; ++i)
         {
-            objects_for_grouping[i].parent.PreDelete();
+			objects_for_grouping[i].parent.bNotPreDelete = true;
             objects_for_grouping[i].parent.Remove_FromDocument(false);
+			objects_for_grouping[i].parent.bNotPreDelete = undefined;
             if(objects_for_grouping[i].setParent){
                 objects_for_grouping[i].setParent(null);
             }
@@ -2733,8 +2749,10 @@ CGraphicObjects.prototype =
                 parent_paragraph = cur_group.parent.Get_ParentParagraph();
                 page_num = cur_group.selectStartPage;
                 cur_group.normalize();
-                cur_group.parent.PreDelete();
+				
+				cur_group.parent.bNotPreDelete = true;
                 cur_group.parent.Remove_FromDocument(false);
+				cur_group.parent.bNotPreDelete = undefined;
                 cur_group.setBDeleted(true);
                 sp_tree = cur_group.spTree;
                 aPos = arrCenterPos[i];
@@ -3070,14 +3088,26 @@ CGraphicObjects.prototype =
                                 this.resetInternalSelection();
                                 var new_x, new_y;
                                // var pos = cur_group.getBoundsPos();
-                                cur_group.updateCoordinatesAfterInternalResize();
+                                var oPos = cur_group.updateCoordinatesAfterInternalResize();
 
-                                new_x = cur_group.x + cur_group.spPr.xfrm.offX;
-                                new_y = cur_group.y + cur_group.spPr.xfrm.offY;
+                                var g_pos_x = 0, g_pos_y = 0;
+                                if(oPos)
+                                {
+                                    if(AscFormat.isRealNumber(oPos.posX))
+                                    {
+                                        g_pos_x = oPos.posX;
+                                    }
+                                    if(AscFormat.isRealNumber(oPos.posY))
+                                    {
+                                        g_pos_y = oPos.posY;
+                                    }
+                                }
+                                new_x = cur_group.x + g_pos_x;
+                                new_y = cur_group.y + g_pos_y;
 
                                 cur_group.spPr.xfrm.setOffX(0);
                                 cur_group.spPr.xfrm.setOffY(0);
-
+                                para_drawing.CheckWH();
                                 para_drawing.Set_XY(new_x, new_y, cur_group.parent.Get_ParentParagraph(), cur_group.selectStartPage, false);//X, Y, Paragraph, PageNum, bResetAlign
                                 this.document.Recalculate();
                                 break;
@@ -4059,6 +4089,8 @@ CGraphicObjects.prototype =
     endImageCrop: DrawingObjectsController.prototype.endImageCrop,
     cropFit: DrawingObjectsController.prototype.cropFit,
     cropFill: DrawingObjectsController.prototype.cropFill,
+
+    checkRedrawOnChangeCursorPosition: DrawingObjectsController.prototype.checkRedrawOnChangeCursorPosition,
 
     getFromTargetTextObjectContextMenuPosition: function(oTargetTextObject, pageIndex)
     {

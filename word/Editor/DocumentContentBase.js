@@ -196,6 +196,90 @@ CDocumentContentBase.prototype.GetAllSeqFieldsByType = function(sType, aFields)
 };
 
 /**
+ * Finds a paragraph with a given style
+ * @param {string} sStyleId - id of paragraph style
+ * @param {boolean} bBackward - whether to search backward or forward
+ * @param {?number} nStartIdx - index of searching start. If it is null searching starts depends on bBackward.
+ * @returns {?Paragraph}
+ */
+CDocumentContentBase.prototype.FindParaWithStyle = function (sStyleId, bBackward, nStartIdx)
+{
+	var nIdx, oElement, oResultPara = null, oContent;
+	var nSearchStartIdx;
+	if(bBackward)
+	{
+		if(nStartIdx !== null)
+		{
+			nSearchStartIdx = Math.min(nStartIdx, this.Content.length - 1);
+		}
+		else
+		{
+			nSearchStartIdx = this.Content.length - 1;
+		}
+		for(nIdx = nSearchStartIdx; nIdx >= 0; --nIdx)
+		{
+			oElement = this.Content[nIdx];
+			if(oElement.GetType() === type_Paragraph)
+			{
+				if(oElement.GetParagraphStyle() === sStyleId)
+				{
+					oResultPara = oElement;
+				}
+			}
+			else if(oElement.GetType() === type_Table)
+			{
+				oResultPara = oElement.FindParaWithStyle(sStyleId, bBackward, null);
+			}
+			else if(oElement.GetType() === type_BlockLevelSdt)
+			{
+				oContent = oElement.GetContent();
+				oResultPara = oContent.FindParaWithStyle(sStyleId, bBackward, null);
+			}
+			if(oResultPara !== null)
+			{
+				return oResultPara;
+			}
+		}
+	}
+	else
+	{
+		if(nStartIdx !== null)
+		{
+			nSearchStartIdx = Math.max(nStartIdx, 0);
+		}
+		else
+		{
+			nSearchStartIdx = 0;
+		}
+		for(nIdx = nSearchStartIdx; nIdx < this.Content.length; ++nIdx)
+		{
+			oElement = this.Content[nIdx];
+			if(oElement.GetType() === type_Paragraph)
+			{
+				if(oElement.GetParagraphStyle() === sStyleId)
+				{
+					oResultPara = oElement;
+				}
+			}
+			else if(oElement.GetType() === type_Table)
+			{
+				oResultPara = oElement.FindParaWithStyle(sStyleId, bBackward, null);
+			}
+			else if(oElement.GetType() === type_BlockLevelSdt)
+			{
+				oContent = oElement.GetContent();
+				oResultPara = oContent.FindParaWithStyle(sStyleId, bBackward, null);
+			}
+			if(oResultPara !== null)
+			{
+				return oResultPara;
+			}
+		}
+	}
+	return null;
+};
+
+/**
  * Находим отрезок сносок, заданный между сносками.
  * @param {?CFootEndnote} oFirstFootnote - если null, то иещм с начала документа
  * @param {?CFootEndnote} oLastFootnote - если null, то ищем до конца документа
@@ -204,7 +288,7 @@ CDocumentContentBase.prototype.GetAllSeqFieldsByType = function(sType, aFields)
 CDocumentContentBase.prototype.GetFootnotesList = function(oFirstFootnote, oLastFootnote, isEndnotes)
 {
 	var oEngine = new CDocumentFootnotesRangeEngine();
-	oEngine.Init(oFirstFootnote, oLastFootnote, isEndnotes);
+	oEngine.Init(oFirstFootnote, oLastFootnote, !isEndnotes, isEndnotes);
 
 	var arrFootnotes = [];
 
@@ -274,10 +358,12 @@ CDocumentContentBase.prototype.private_RecalculateEmptySectionParagraph = functi
  * Передвигаем курсор (от текущего положения) к началу ссылки на сноску
  * @param isNext двигаемся вперед или назад
  * @param isCurrent находимся ли мы в текущем объекте
+ * @param isStepFootnote {boolean} - ищем сноски на странице
+ * @param isStepEndnote {boolean} - ищем концевые сноски
  * @returns {boolean}
  * @constructor
  */
-CDocumentContentBase.prototype.GotoFootnoteRef = function(isNext, isCurrent)
+CDocumentContentBase.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepFootnote, isStepEndnote)
 {
 	var nCurPos = 0;
 
@@ -301,7 +387,7 @@ CDocumentContentBase.prototype.GotoFootnoteRef = function(isNext, isCurrent)
 		for (var nIndex = nCurPos, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 		{
 			var oElement = this.Content[nIndex];
-			if (oElement.GotoFootnoteRef(true, true === isCurrent && nIndex === nCurPos))
+			if (oElement.GotoFootnoteRef(true, true === isCurrent && nIndex === nCurPos, isStepFootnote, isStepEndnote))
 				return true;
 		}
 	}
@@ -310,7 +396,7 @@ CDocumentContentBase.prototype.GotoFootnoteRef = function(isNext, isCurrent)
 		for (var nIndex = nCurPos; nIndex >= 0; --nIndex)
 		{
 			var oElement = this.Content[nIndex];
-			if (oElement.GotoFootnoteRef(false, true === isCurrent && nIndex === nCurPos))
+			if (oElement.GotoFootnoteRef(false, true === isCurrent && nIndex === nCurPos, isStepFootnote, isStepEndnote))
 				return true;
 		}
 	}
@@ -1039,6 +1125,7 @@ CDocumentContentBase.prototype.private_AddContentControl = function(nContentCont
 			{
 				var oSdt = new CBlockLevelSdt(editor.WordControl.m_oLogicDocument, this);
 				oSdt.SetDefaultTextPr(this.GetDirectTextPr());
+				oSdt.SetPlaceholder(c_oAscDefaultPlaceholderName.Text);
 
 				var oLogicDocument = this instanceof CDocument ? this : this.LogicDocument;
 				oLogicDocument.RemoveCommentsOnPreDelete = false;
@@ -1079,6 +1166,8 @@ CDocumentContentBase.prototype.private_AddContentControl = function(nContentCont
 			{
 				var oSdt = new CBlockLevelSdt(editor.WordControl.m_oLogicDocument, this);
 				oSdt.SetDefaultTextPr(this.GetDirectTextPr());
+				oSdt.SetPlaceholder(c_oAscDefaultPlaceholderName.Text);
+				oSdt.ReplaceContentWithPlaceHolder(false);
 
 				var nContentPos = this.CurPos.ContentPos;
 				if (oElement.IsCursorAtBegin())
@@ -1306,26 +1395,37 @@ CDocumentContentBase.prototype.GetTableOfContents = function(isUnique, isCheckFi
 	return null;
 };
 /**
+ * Get all tables of figures inside
+ * @param arrComplexFields
+ */
+CDocumentContentBase.prototype.GetTablesOfFigures = function(arrComplexFields)
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		this.Content[nIndex].GetTablesOfFigures(arrComplexFields);
+	}
+};
+/**
  * Добавляем заданный текст в текущей позиции
  * @param {String} sText
  */
 CDocumentContentBase.prototype.AddText = function(sText)
 {
-	for (var oIterator = sText.getUnicodeIterator(); oIterator.check(); oIterator.next())
-	{
-		var nCharCode = oIterator.value();
+	if (this.IsSelectionUse())
+		this.Remove(1, true, false, true, false);
 
-		if (9 === nCharCode) // \t
-			this.AddToParagraph(new ParaTab(), false);
-		if (10 === nCharCode) // \n
-			this.AddToParagraph(new ParaNewLine(break_Line), false);
-		else if (13 === nCharCode) // \r
-			continue;
-		else if (32 === nCharCode) // space
-			this.AddToParagraph(new ParaSpace(), false);
-		else
-			this.AddToParagraph(new ParaText(nCharCode), false);
-	}
+	var oParagraph = this.GetCurrentParagraph();
+	if (!oParagraph)
+		return;
+
+	var oTextPr = oParagraph.GetDirectTextPr();
+	if (!oTextPr)
+		oTextPr = new CTextPr();
+
+	var oRun = new ParaRun(oParagraph);
+	oRun.SetPr(oTextPr);
+	oRun.AddText(sText);
+	oParagraph.Add(oRun);
 };
 /**
  * Проверяем находимся ли мы заголовке хоть какой-либо таблицы
@@ -1468,6 +1568,19 @@ CDocumentContentBase.prototype.GetAllParagraphsByNumbering = function(oNumPr)
 CDocumentContentBase.prototype.GetAllParagraphsByStyle = function(arrStylesId)
 {
 	return this.GetAllParagraphs({Style : true, StylesId : arrStylesId});
+};
+/**
+ * Получаем массив таблиц по заданному критерию
+ * @param oProps
+ * @param [arrTables=undefined]
+ * @returns {Paragraph[]}
+ */
+CDocumentContentBase.prototype.GetAllTables = function(oProps, arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	return arrTables;
 };
 /**
  * Выделяем заданную нумерацию
@@ -1975,5 +2088,112 @@ CDocumentContentBase.prototype.RecalculateEndInfo = function()
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
 		this.Content[nIndex].RecalculateEndInfo();
+	}
+};
+/**
+ * Является ли данный контент блочным контролом
+ * @returns {boolean}
+ */
+CDocumentContentBase.prototype.IsBlockLevelSdtContent = function()
+{
+	return false;
+};
+/**
+ * По заданному объекту получаем индекс данного объекта, либо элменента, внутри которого находится данный объект
+ * @param {CFlowTable | CFlowParagraph} oFlow
+ * @param {number} X
+ * @param {number} Y
+ * @returns {number}
+ */
+CDocumentContentBase.prototype.private_GetContentIndexByFlowObject = function(oFlow, X, Y)
+{
+	if (!oFlow)
+		return -1;
+
+	var oElement = oFlow.GetElement();
+	if (oElement.GetParent() === this)
+	{
+		if (oFlow.IsFlowTable())
+		{
+			return oElement.GetIndex();
+		}
+		else
+		{
+			var nStartPos  = oFlow.StartIndex;
+			var nFlowCount = oFlow.FlowCount;
+			for (var nPos = nStartPos; nPos < nStartPos + nFlowCount; ++nPos)
+			{
+				var oBounds = this.Content[nPos].GetPageBounds(0);
+				if (Y < oBounds.Bottom)
+					return nPos;
+			}
+
+			return nStartPos + nFlowCount - 1;
+		}
+	}
+	else
+	{
+		var arrDocPos = oElement.GetDocumentPositionFromObject();
+		for (var nIndex = 0, nCount = arrDocPos.length; nIndex < nCount; ++nIndex)
+		{
+			if (arrDocPos[nIndex].Class === this)
+				return arrDocPos[nIndex].Position;
+		}
+	}
+
+	return -1;
+};
+/**
+ * Получаем верхний док контент, который используется для пересчета плавающих объектов и различных переносов.
+ * Как правило это нужно, если данный класс - это CBlockLevelSdt
+ * @returns {?CDocumentContent}
+ */
+CDocumentContentBase.prototype.GetDocumentContentForRecalcInfo = function()
+{
+	return this;
+};
+CDocumentContentBase.prototype.GetPrevParagraphForLineNumbers = function(nIndex, isNewSection)
+{
+	var _nIndex = nIndex;
+	if (-1 === _nIndex || undefined === _nIndex)
+		_nIndex = this.Content.length;
+
+	while (_nIndex >= 0)
+	{
+		if (0 === _nIndex)
+		{
+			var oParent = this.GetParent();
+			if (oParent && oParent.GetPrevParagraphForLineNumbers)
+				return oParent.GetPrevParagraphForLineNumbers(true, isNewSection);
+
+			return null;
+		}
+
+		_nIndex--;
+
+		if (this.Content[_nIndex].IsParagraph())
+		{
+			var oSectPr = this.Content[_nIndex].Get_SectionPr();
+			if (oSectPr && (isNewSection || !oSectPr.HaveLineNumbers()))
+				return null;
+
+			if (!this.Content[_nIndex].IsCountLineNumbers())
+				continue;
+
+			return this.Content[_nIndex];
+		}
+		else if (this.Content[_nIndex].IsBlockLevelSdt())
+		{
+			return this.Content[_nIndex].GetPrevParagraphForLineNumbers(false, isNewSection);
+		}
+	}
+
+	return null;
+};
+CDocumentContentBase.prototype.UpdateLineNumbersInfo = function()
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		this.Content[nIndex].UpdateLineNumbersInfo();
 	}
 };

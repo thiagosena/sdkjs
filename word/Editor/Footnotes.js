@@ -147,9 +147,15 @@ CFootnotesController.prototype.CreateFootnote = function()
  */
 CFootnotesController.prototype.AddFootnote = function(oFootnote)
 {
-	this.Footnote[oFootnote.Get_Id()] = oFootnote;
-	var oHistory                      = this.LogicDocument.Get_History();
-	oHistory.Add(new CChangesFootnotesAddFootnote(this, oFootnote.Get_Id()));
+	this.Footnote[oFootnote.GetId()] = oFootnote;
+	var oHistory                     = this.LogicDocument.GetHistory();
+	oHistory.Add(new CChangesFootnotesAddFootnote(this, oFootnote.GetId()));
+};
+CFootnotesController.prototype.RemoveFootnote = function(oFootnote)
+{
+	delete this.Footnote[oFootnote.GetId()];
+	var oHistory                     = this.LogicDocument.GetHistory();
+	oHistory.Add(new CChangesFootnotesRemoveFootnote(this, oFootnote.GetId()));
 };
 CFootnotesController.prototype.SetSeparator = function(oFootnote)
 {
@@ -891,6 +897,29 @@ CFootnotesController.prototype.GetAllParagraphs = function(Props, ParaArray)
 		var oFootnote = this.Footnote[sId];
 		oFootnote.GetAllParagraphs(Props, ParaArray);
 	}
+};
+CFootnotesController.prototype.GetAllTables = function(oProps, arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	for (var sId in this.Footnote)
+	{
+		var oFootnote = this.Footnote[sId];
+		oFootnote.GetAllTables(oProps, arrTables);
+	}
+
+	return arrTables;
+};
+CFootnotesController.prototype.GetFirstParagraphs = function()
+{
+	var aParagraphs = []
+	for (var sId in this.Footnote)
+	{
+		var oFootnote = this.Footnote[sId];
+		aParagraphs.push(oFootnote.GetFirstParagraph());
+	}
+	return aParagraphs;
 };
 CFootnotesController.prototype.StartSelection = function(X, Y, PageAbs, MouseEvent)
 {
@@ -2689,7 +2718,7 @@ CFootnotesController.prototype.GetCurrentParagraph = function(bIgnoreSelection, 
 CFootnotesController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
 	if (true !== this.private_IsOnFootnoteSelected() || null === this.CurFootnote)
-		oInfo.Set_MixedSelection();
+		oInfo.SetMixedSelection();
 	else
 		this.CurFootnote.GetSelectedElementsInfo(oInfo);
 };
@@ -3306,6 +3335,14 @@ CFootnotesController.prototype.GetAllDrawingObjects = function(arrDrawings)
 	}
 
 	return arrDrawings;
+};
+CFootnotesController.prototype.UpdateBookmarks = function(oBookmarkManager)
+{
+	for (var sId in  this.Footnote)
+	{
+		var oFootnote = this.Footnote[sId];
+		oFootnote.UpdateBookmarks(oBookmarkManager);
+	}
 };
 CFootnotesController.prototype.IsTableCellSelection = function()
 {

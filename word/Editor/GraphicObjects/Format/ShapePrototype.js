@@ -635,9 +635,13 @@ CShape.prototype.checkShapeChildTransform = function()
 CShape.prototype.GetAllParagraphs = function(Props, ParaArray)
 {
     var oContent = this.getDocContent();
-    oContent && oContent.GetAllParagraphs(Props, ParaArray);
+    return oContent ? oContent.GetAllParagraphs(Props, ParaArray) : [];
 };
-
+CShape.prototype.GetAllTables = function(oProps, arrTables)
+{
+	var oContent = this.getDocContent();
+	return oContent ? oContent.GetAllTables(oProps, arrTables) : [];
+};
 
 
 CShape.prototype.getArrayWrapIntervals = function(x0,y0, x1, y1, Y0Sp, Y1Sp, LeftField, RightField, arr_intervals, bMathWrap)
@@ -768,6 +772,18 @@ CShape.prototype.Refresh_RecalcData = function(data)
         }
     }
     this.Refresh_RecalcData2();
+    if(data && data.Type === AscDFH.historyitem_ShapeSetStyle)
+    {
+        var oContent = this.getDocContent && this.getDocContent();
+        if(oContent)
+        {
+            oContent.Recalc_AllParagraphs_CompiledPr();
+        }
+        if(this.recalcInfo)
+        {
+            this.recalcInfo.recalculateShapeStyleForParagraph = true;
+        }
+    }
 };
 
 CShape.prototype.Refresh_RecalcData2 = function()
@@ -1058,10 +1074,6 @@ CShape.prototype.OnContentReDraw = function()
 };
 
 
-CShape.prototype.Get_TextBackGroundColor = function()
-{
-    return undefined;
-};
 CShape.prototype.documentStatistics = function(stats)
 {
     var content = this.getDocContent();
@@ -1133,13 +1145,6 @@ CShape.prototype.Get_Styles = function()
     }
     return new CStyles(true);
 };
-CShape.prototype.Is_InTable = function(bReturnTopTable)
-{
-    if ( true === bReturnTopTable )
-        return null;
-
-    return false;
-};
 
 CShape.prototype.Get_TableStyleForPara = function()
 {
@@ -1160,7 +1165,7 @@ CShape.prototype.Is_DrawingShape = function(bRetShape)
     return true;
 };
 
-CShape.prototype.Is_InTable = function(bReturnTopTable)
+CShape.prototype.IsInTable = function(bReturnTopTable)
 {
     if ( true === bReturnTopTable )
         return null;

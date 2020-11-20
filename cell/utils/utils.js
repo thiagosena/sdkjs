@@ -448,6 +448,12 @@
 		Range.prototype.contains2 = function (cell) {
 			return this.contains(cell.col, cell.row);
 		};
+		Range.prototype.containsCol = function (c) {
+			return this.c1 <= c && c <= this.c2;
+		};
+		Range.prototype.containsRow = function (r) {
+			return this.r1 <= r && r <= this.r2;
+		};
 
 		Range.prototype.containsRange = function (range) {
 			return this.contains(range.c1, range.r1) && this.contains(range.c2, range.r2);
@@ -556,7 +562,8 @@
 			var isNoDelete = true;
 			var isHor = 0 != offset.col;
 			var toDelete = offset.col < 0 || offset.row < 0;
-
+			var isLastRow = this.r2 === gc_nMaxRow0;
+			var isLastCol = this.c2 === gc_nMaxCol0;
 			if (isHor) {
 				if (toDelete) {
 					if (this.c1 < bbox.c1) {
@@ -589,7 +596,11 @@
 					if (this.c1 < bbox.c1) {
 						this.setOffsetLast(offset);
 					} else {
-						this.setOffset(offset);
+						if (this.c1 + offset.col <= gc_nMaxCol0) {
+							this.setOffset(offset);
+						} else {
+							isNoDelete = false;
+						}
 					}
 				}
 			} else {
@@ -624,9 +635,20 @@
 					if (this.r1 < bbox.r1) {
 						this.setOffsetLast(offset);
 					} else {
-						this.setOffset(offset);
+						if (this.r1 + offset.row <= gc_nMaxRow0) {
+							this.setOffset(offset);
+						} else {
+							isNoDelete = false;
+						}
 					}
 				}
+			}
+			//range sticks to the gc_nMaxRow0/gc_nMaxCol0(but not to 0) and cannot be shifted
+			if(isLastRow) {
+				this.r2 = gc_nMaxRow0;
+			}
+			if(isLastCol) {
+				this.c2 = gc_nMaxCol0;
 			}
 			return isNoDelete;
 		};
@@ -1035,8 +1057,17 @@
 		SelectionRange.prototype.contains2 = function (cell) {
 			return this.contains(cell.col, cell.row);
 		};
+		SelectionRange.prototype.containsCol = function (c) {
+			return this.ranges.some(function (item) {
+				return item.containsCol(c);
+			});
+		};
+		SelectionRange.prototype.containsRow = function (r) {
+			return this.ranges.some(function (item) {
+				return item.containsRow(r);
+			});
+		};
 		SelectionRange.prototype.inContains = function (ranges) {
-			var t = this;
 			return this.ranges.every(function (item1) {
 				return ranges.some(function (item2) {
 					return item2.containsRange(item1);
@@ -1878,17 +1909,29 @@
 			}
 		}
 
-		function generateStyles(width, height, cellStyles, wb) {
+		function getContext(w, h, wb) {
+			var oCanvas = document.createElement('canvas');
+			oCanvas.width = w;
+			oCanvas.height = h;
+			return new Asc.DrawingContext(
+				{canvas: oCanvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
+		}
+		function getGraphics(ctx) {
+			var graphics = new AscCommon.CGraphics();
+			graphics.init(ctx.ctx, ctx.getWidth(0), ctx.getHeight(0), ctx.getWidth(3), ctx.getHeight(3));
+			graphics.m_oFontManager = AscCommon.g_fontManager;
+
+			return graphics;
+		}
+		function generateCellStyles(w, h, wb) {
 			var result = [];
 
 			var widthWithRetina = AscCommon.AscBrowser.convertToRetinaValue(width, true);
 			var heightWithRetina = AscCommon.AscBrowser.convertToRetinaValue(height, true);
 
-			var oCanvas = document.createElement('canvas');
-			oCanvas.width = widthWithRetina;
-			oCanvas.height = heightWithRetina;
-			var oGraphics = new Asc.DrawingContext(
-				{canvas: oCanvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
+			var ctx = getContext(w, h, wb);
+			var oCanvas = ctx.getCanvas();
+			var graphics = getGraphics(ctx);
 
 			function addStyles(styles, type) {
 				var oStyle, name, displayName;
@@ -1909,7 +1952,7 @@
 					if (window["IS_NATIVE_EDITOR"]) {
 						window["native"]["BeginDrawStyle"](type, name);
 					}
-					drawStyle(oGraphics, wb.stringRender, oStyle, displayName, widthWithRetina, heightWithRetina);
+					drawStyle(ctx, graphics, wb.stringRender, oStyle, displayName, w, h);
 					if (window["IS_NATIVE_EDITOR"]) {
 						window["native"]["EndDrawStyle"]();
 					} else {
@@ -1918,21 +1961,21 @@
 				}
 			}
 
+			var cellStyles = wb.model.CellStyles;
 			addStyles(cellStyles.CustomStyles, AscCommon.c_oAscStyleImage.Document);
 			addStyles(cellStyles.DefaultStyles, AscCommon.c_oAscStyleImage.Default);
 
 			return result;
 		}
 
-		function drawStyle(ctx, sr, oStyle, sStyleName, width, height) {
+		function drawStyle(ctx, graphics, sr, oStyle, sStyleName, width, height) {
 			var bc = null, bs = AscCommon.c_oAscBorderStyles.None, isNotFirst = false; // cached border color
 			ctx.clear();
 			// Fill cell
 			if (oStyle.ApplyFill) {
-				var oColor = oStyle.getFillColor();
-				if (null !== oColor) {
-					ctx.setFillStyle(oColor);
-					ctx.fillRect(0, 0, width, height);
+				var fill = oStyle.getFill();
+				if (null !== fill) {
+					AscCommonExcel.drawFillCell(ctx, graphics, fill, new AscCommon.asc_CRect(0, 0, width, height));
 				}
 			}
 
@@ -2011,6 +2054,192 @@
 			ctx.setFillStyle(oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
 			ctx.fillText(sStyleName, width_padding, textY + tm.baseline);
 		}
+		
+		function drawFillCell(ctx, graphics, fill, rect) {
+			if (!fill.hasFill()) {
+				return;
+			}
+
+			var solid = fill.getSolidFill();
+			if (solid) {
+				ctx.setFillStyle(solid).fillRect(rect._x, rect._y, rect._width, rect._height);
+				return;
+			}
+			var dScale = Asc.getCvtRatio(0, 3, ctx.getPPIX());
+			rect._x *= dScale;
+			rect._y *= dScale;
+			rect._width *= dScale;
+			rect._height *= dScale;
+			AscFormat.ExecuteNoHistory(
+				function () {
+					var geometry = new AscFormat.CreateGeometry("rect");
+					geometry.Recalculate(rect._width, rect._height, true);
+					var oUniFill = AscCommonExcel.convertFillToUnifill(fill);
+					if (ctx instanceof AscCommonExcel.CPdfPrinter) {
+						graphics.SaveGrState();
+						var _baseTransform;
+						if (!ctx.Transform) {
+							_baseTransform = new AscCommon.CMatrix();
+						} else {
+							_baseTransform = ctx.Transform;
+						}
+						graphics.SetBaseTransform(_baseTransform);
+					}
+
+					graphics.save();
+					var oMatrix = new AscCommon.CMatrix();
+					oMatrix.tx = rect._x;
+					oMatrix.ty = rect._y;
+					graphics.transform3(oMatrix);
+					var shapeDrawer = new AscCommon.CShapeDrawer();
+					shapeDrawer.Graphics = graphics;
+
+					shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
+					shapeDrawer.draw(geometry);
+					graphics.restore();
+
+					if (ctx instanceof AscCommonExcel.CPdfPrinter) {
+						graphics.SetBaseTransform(null);
+						graphics.RestoreGrState();
+					}
+				}, this, []
+			);
+		}
+
+		function generateSlicerStyles(w, h, wb) {
+			var result = [];
+
+			if (AscCommon.AscBrowser.isRetina) {
+				w = AscCommon.AscBrowser.convertToRetinaValue(w, true);
+				h = AscCommon.AscBrowser.convertToRetinaValue(h, true);
+			}
+
+			var ctx = getContext(w, h, wb);
+			var oCanvas = ctx.getCanvas();
+			var graphics = getGraphics(ctx);
+
+			function addStyles(styles, type) {
+				for(var sStyleName in styles) {
+					if(styles.hasOwnProperty(sStyleName)) {
+						var oSlicerStyle = styles[sStyleName];
+						var oTableStyle = oAllTableStyles[sStyleName];
+						if (oSlicerStyle && oTableStyle) {
+							drawSlicerStyle(ctx, graphics, oSlicerStyle, oTableStyle, w, h);
+							result.push(new AscCommon.CStyleImage(sStyleName, type, oCanvas.toDataURL("image/png")));
+						}
+					}
+				}
+			}
+
+			var oAllTableStyles = wb.model.TableStyles.AllStyles;
+			addStyles(wb.model.SlicerStyles.CustomStyles, AscCommon.c_oAscStyleImage.Document);
+			addStyles(wb.model.SlicerStyles.DefaultStyles, AscCommon.c_oAscStyleImage.Default);
+
+			return result;
+		}
+
+		function drawSlicerStyle(ctx, graphics, oSlicerStyle, oTableStyle, width, height) {
+			ctx.clear();
+
+			var dxf, dxfWhole;
+
+			var nIns = 2;
+			var nBH = 8;
+
+			if (AscCommon.AscBrowser.isRetina) {
+				nIns = AscCommon.AscBrowser.convertToRetinaValue(nIns, true);
+				nBH = AscCommon.AscBrowser.convertToRetinaValue(nBH, true);
+			}
+
+			//whole
+			dxfWhole = oTableStyle.wholeTable && oTableStyle.wholeTable.dxf;
+			drawSlicerPreviewElement(dxfWhole, null, ctx, graphics, 0, 0, width, height);
+			dxfWhole = dxfWhole || true;
+
+			//header
+			dxf = oTableStyle.headerRow && oTableStyle.headerRow.dxf;
+			drawSlicerPreviewElement(dxf, dxfWhole, ctx, graphics, 0, 0, width, nBH);
+
+			var nPos = nBH + nIns;
+			var aBT = [
+				Asc.ST_slicerStyleType.selectedItemWithData,
+				Asc.ST_slicerStyleType.unselectedItemWithData,
+				Asc.ST_slicerStyleType.selectedItemWithNoData,
+				Asc.ST_slicerStyleType.unselectedItemWithNoData
+			];
+			for(var nType = 0; nType < aBT.length; ++nType) {
+				dxf = oSlicerStyle[aBT[nType]];
+				drawSlicerPreviewElement(dxf, dxfWhole, ctx, graphics, nIns, nPos, width - nIns, nPos + nBH);
+				nPos += nBH + nIns;
+			}
+		}
+		function drawSlicerPreviewElement(dxf, dxfWhole, ctx, graphics, x0, y0, x1, y1) {
+			var oFill = dxf && dxf.getFill();
+			if(oFill) {
+				AscCommonExcel.drawFillCell(ctx, graphics, oFill, new AscCommon.asc_CRect(x0, y0, x1 - x0, y1 - y0));
+			}
+			var oBorder = dxf && dxf.getBorder();
+			if (oBorder) {
+				var oS = oBorder.l;
+				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
+					ctx.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+					ctx.lineVer(x0, y0, y1);
+					ctx.stroke();
+				}
+				oS = oBorder.t;
+				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
+					ctx.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+					ctx.lineHor(x0 + 1, y0, x1 - 1);
+					ctx.stroke();
+				}
+				oS = oBorder.r;
+				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
+					ctx.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+					ctx.lineVer(x1 - 1, y0, y1);
+					ctx.stroke();
+				}
+				oS = oBorder.b;
+				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
+					ctx.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+					ctx.lineHor(x0 + 1, y1 - 1, x1 - 1);
+					ctx.stroke();
+				}
+			}
+			if (dxfWhole) {
+				var nTIns = 5;
+				var nTW = 8;
+				if (AscCommon.AscBrowser.isRetina) {
+					nTIns = AscCommon.AscBrowser.convertToRetinaValue(nTIns, true);
+					nTW = AscCommon.AscBrowser.convertToRetinaValue(nTW, true);
+				}
+
+				var oFont = dxf && dxf.getFont() || dxfWhole && dxfWhole.getFont && dxfWhole.getFont();
+				var oColor = oFont ? oFont.getColor() : new AscCommon.CColor(0, 0, 0);
+				ctx.setStrokeStyle(oColor);
+				ctx.setLineWidth(1);
+				ctx.setLineDash([]);
+				ctx.beginPath();
+				ctx.lineHor(nTIns, y0 + (y1 - y0) / 2.0, nTIns + nTW);
+				ctx.stroke();
+			}
+		}
+
+		function generateXfsStyle(w, h, wb, xfs, text) {
+			if (AscCommon.AscBrowser.isRetina) {
+				w = AscCommon.AscBrowser.convertToRetinaValue(w, true);
+				h = AscCommon.AscBrowser.convertToRetinaValue(h, true);
+			}
+
+			var ctx = getContext(w, h, wb);
+			var oCanvas = ctx.getCanvas();
+			var graphics = getGraphics(ctx);
+
+			var style = new AscCommonExcel.CCellStyle();
+			style.xfs = xfs;
+
+			drawStyle(ctx, graphics, wb.stringRender, oStyle, text, w, h);
+			return new AscCommon.CStyleImage(text, null, oCanvas.toDataURL("image/png"));
+		}
 
 		//-----------------------------------------------------------------
 		// События движения мыши
@@ -2037,6 +2266,9 @@
 
 				//Filter
 				this.filter = obj.filter;
+				
+				//Tooltip
+				this.tooltip = obj.tooltip;
 			}
 
 			return this;
@@ -2053,7 +2285,8 @@
 			asc_getLockedObjectType: function () { return this.lockedObjectType; },
 			asc_getSizeCCOrPt: function () { return this.sizeCCOrPt; },
 			asc_getSizePx: function () { return this.sizePx; },
-			asc_getFilter: function () { return this.filter; }
+			asc_getFilter: function () { return this.filter; },
+			asc_getTooltip: function () { return this.tooltip; }
 		};
 
 		// Гиперссылка
@@ -2269,7 +2502,6 @@
 
 		function RedoObjectParam () {
 			this.bIsOn = false;
-			this.bIsReInit = false;
 			this.oChangeWorksheetUpdate = {};
 			this.bUpdateWorksheetByModel = false;
 			this.bOnSheetsChanged = false;
@@ -2537,13 +2769,8 @@
 			this.isIgnoreNumbers = false;
 		}
 
-		CSpellcheckState.prototype.init = function (startCell) {
-			if (!this.startCell) {
-				this.startCell = startCell.clone();
-				this.currentCell = startCell.clone();
-			}
-		};
 		CSpellcheckState.prototype.clean = function () {
+			this.isStart = false;
 			this.lastSpellInfo = null;
 			this.lastIndex = 0;
 
@@ -2619,16 +2846,6 @@
 		asc_CFormatCellsInfo.prototype.asc_getSeparator = function () {return this.separator;};
 		asc_CFormatCellsInfo.prototype.asc_getSymbol = function () {return this.symbol;};
 
-		/** @constructor */
-		function asc_CSelectionRangeValue(){
-			this.name =  null;
-			this.type = null;
-		}
-		asc_CSelectionRangeValue.prototype.asc_setType = function (val) {this.type = val;};
-		asc_CSelectionRangeValue.prototype.asc_setName = function (val) {this.name = val;};
-		asc_CSelectionRangeValue.prototype.asc_getType = function () {return this.type;};
-		asc_CSelectionRangeValue.prototype.asc_getName = function () {return this.name;};
-
 		/**
 		 * передаём в меню для того, чтобы показать иконку опций авторавертывания таблиц
 		 * @constructor
@@ -2644,6 +2861,15 @@
 		asc_CAutoCorrectOptions.prototype.asc_getType = function () {return this.type;};
 		asc_CAutoCorrectOptions.prototype.asc_getOptions = function () {return this.options;};
 		asc_CAutoCorrectOptions.prototype.asc_getCellCoord = function () {return this.cellCoord;};
+
+		function CEditorEnterOptions() {
+			this.cursorPos = null;
+			this.eventPos = null;
+			this.focus = false;
+			this.newText = null;
+			this.hideCursor = false;
+			this.quickInput = false;
+		}
 
 		/** @constructor */
 		function cDate() {
@@ -2789,6 +3015,11 @@
 			return api.asc_getLocaleExample(AscCommon.getShortTimeFormat(), this.getExcelDateWithTime(true) - this.getTimezoneOffset()/(60*24));
 		};
 
+		function getIconsForLoad() {
+			return AscCommonExcel.getCFIconsForLoad().concat(AscCommonExcel.getSlicerIconsForLoad());
+		}
+
+
 		/*
 		 * Export
 		 * -----------------------------------------------------------------------------
@@ -2804,10 +3035,11 @@
 		window['AscCommonExcel'].c_sPerDay = c_sPerDay;
 		window['AscCommonExcel'].c_msPerDay = c_msPerDay;
 		window["AscCommonExcel"].applyFunction = applyFunction;
-		window['AscCommonExcel'].cDate = cDate;
-		window["Asc"]["cDate"] = window["Asc"].cDate = cDate;
-		prot									     = cDate.prototype;
-		prot["getExcelDateWithTime"]	             = prot.getExcelDateWithTime;
+		window['AscCommonExcel'].g_IncludeNewRowColInTable = true;
+
+		window["Asc"]["cDate"] = window["Asc"].cDate = window['AscCommonExcel'].cDate = cDate;
+		prot = cDate.prototype;
+		prot["getExcelDateWithTime"] = prot.getExcelDateWithTime;
 
 		window["Asc"].typeOf = typeOf;
 		window["Asc"].lastIndexOf = lastIndexOf;
@@ -2839,7 +3071,10 @@
 		window['AscCommonExcel'].checkFilteringMode = checkFilteringMode;
 		window["Asc"].getEndValueRange = getEndValueRange;
 		window["AscCommonExcel"].checkStylesNames = checkStylesNames;
-		window["AscCommonExcel"].generateStyles = generateStyles;
+		window["AscCommonExcel"].generateCellStyles = generateCellStyles;
+		window["AscCommonExcel"].generateSlicerStyles = generateSlicerStyles;
+		window["AscCommonExcel"].generateXfsStyle = generateXfsStyle;
+		window["AscCommonExcel"].getIconsForLoad = getIconsForLoad;
 
 		window["AscCommonExcel"].referenceType = referenceType;
 		window["Asc"].Range = Range;
@@ -2868,6 +3103,7 @@
 		prot["asc_getSizeCCOrPt"] = prot.asc_getSizeCCOrPt;
 		prot["asc_getSizePx"] = prot.asc_getSizePx;
 		prot["asc_getFilter"] = prot.asc_getFilter;
+		prot["asc_getTooltip"] = prot.asc_getTooltip;
 
 		window["Asc"]["asc_CHyperlink"] = window["Asc"].asc_CHyperlink = asc_CHyperlink;
 		prot = asc_CHyperlink.prototype;
@@ -2957,15 +3193,13 @@
 		prot["asc_getSeparator"] = prot.asc_getSeparator;
 		prot["asc_getSymbol"] = prot.asc_getSymbol;
 
-		window["AscCommonExcel"]["asc_CSelectionRangeValue"] = window["AscCommonExcel"].asc_CSelectionRangeValue = asc_CSelectionRangeValue;
-		prot = asc_CSelectionRangeValue.prototype;
-		prot["asc_getType"] = prot.asc_getType;
-		prot["asc_getName"] = prot.asc_getName;
-
 		window["Asc"]["asc_CAutoCorrectOptions"] = window["Asc"].asc_CAutoCorrectOptions = asc_CAutoCorrectOptions;
 		prot = asc_CAutoCorrectOptions.prototype;
 		prot["asc_getType"] = prot.asc_getType;
 		prot["asc_getOptions"] = prot.asc_getOptions;
 		prot["asc_getCellCoord"] = prot.asc_getCellCoord;
+
+		window['AscCommonExcel'].CEditorEnterOptions = CEditorEnterOptions;
+		window['AscCommonExcel'].drawFillCell = drawFillCell;
 
 })(window);

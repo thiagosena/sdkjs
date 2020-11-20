@@ -976,6 +976,23 @@ function CEditorPage(api)
 
 		if (this.m_oApi.isReporterMode)
 			this.m_oApi.StartDemonstration(this.Name, 0);
+
+		if (AscCommon.AscBrowser.isIE && !AscCommon.AscBrowser.isIeEdge)
+		{
+			var ie_hack = [
+				this.m_oThumbnailsBack,
+				this.m_oThumbnails,
+				this.m_oMainContent,
+				this.m_oEditor,
+				this.m_oOverlay
+			];
+
+			for (var elem in ie_hack)
+			{
+				if (ie_hack[elem] && ie_hack[elem].HtmlElement)
+					ie_hack[elem].HtmlElement.style.zIndex = 0;
+			}
+		}
 	};
 
 	this.CheckRetinaDisplay = function()
@@ -2929,6 +2946,8 @@ function CEditorPage(api)
 
 		settings = this.CreateScrollSettings();
 		settings.alwaysVisible = true;
+		settings.isVerticalScroll = false;
+		settings.isHorizontalScroll = true;
 		if (this.m_bIsHorScrollVisible)
 		{
 			if (this.m_oScrollHor_)
@@ -3375,9 +3394,6 @@ function CEditorPage(api)
 
 		this.m_bIsHorScrollVisible = this.checkNeedHorScrollValue(this.m_dDocumentWidth);
 
-		var hor_scroll         = document.getElementById('panel_hor_scroll');
-		hor_scroll.style.width = this.m_dDocumentWidth + "px";
-
 		if (this.m_bIsHorScrollVisible)
 		{
 			if (this.m_oApi.isMobileVersion)
@@ -3498,6 +3514,15 @@ function CEditorPage(api)
 			if (this.MobileTouchManager)
 				this.MobileTouchManager.CheckSelect(overlay);
 		}
+
+		if (drDoc.MathTrack.IsActive())
+		{
+			var dGlobalAplpha = ctx.globalAlpha;
+			ctx.globalAlpha = 1.0;
+			drDoc.DrawMathTrack(overlay);
+			ctx.globalAlpha = dGlobalAplpha;
+		}
+
 
 		if (isDrawNotes && drDoc.m_bIsSelection)
 		{
@@ -3829,8 +3854,6 @@ function CEditorPage(api)
 
 		this.checkNeedHorScroll();
 
-		document.getElementById('panel_right_scroll').style.height = this.m_dDocumentHeight + "px";
-
 		this.UpdateScrolls();
 
 		this.MainScrollUnLock();
@@ -3874,8 +3897,6 @@ function CEditorPage(api)
 		this.MainScrollLock();
 
 		var bIsResize = this.checkNeedHorScroll();
-
-		document.getElementById('panel_right_scroll').style.height = this.m_dDocumentHeight + "px";
 
 		this.UpdateScrolls();
 

@@ -369,18 +369,55 @@
         this.contentCopyPr = null;
     }
 
+    function CBaseObject() {
+        this.Id = null;
+        if(AscCommon.g_oIdCounter.m_bLoad || History.CanAddChanges()) {
+            this.Id = AscCommon.g_oIdCounter.Get_NewId();
+            AscCommon.g_oTableId.Add( this, this.Id );
+        }
+    }
+    CBaseObject.prototype.getObjectType = function() {
+        return AscDFH.historyitem_type_Unknown;
+    };
+    CBaseObject.prototype.Get_Id = function() {
+        return this.Id;
+    };
+    /**
+     * Write object to stream
+     * @memberof CGraphicObjectBase
+     */
+    CBaseObject.prototype.Write_ToBinary2 = function (oWriter) {
+        oWriter.WriteLong(this.getObjectType());
+        oWriter.WriteString2(this.Get_Id());
+    };
+
+    /**
+     * Read object from stream
+     * @memberof CGraphicObjectBase
+     */
+    CBaseObject.prototype.Read_FromBinary2 = function (oReader) {
+        this.Id = oReader.GetString2();
+    };
+    /**
+     * Read object from stream
+     * @memberof CGraphicObjectBase
+     */
+    CBaseObject.prototype.Refresh_RecalcData = function (oChange) {
+    };
+
     /**
      * Base class for all graphic objects
      * @constructor
      */
     function CGraphicObjectBase() {
+
+        CBaseObject.call(this);
         /*Format fields*/
         this.spPr  = null;
         this.group = null;
         this.parent = null;
         this.bDeleted = true;
         this.locks = 0;
-        this.Id = '';
 
         /*Calculated fields*/
         this.posX = null;
@@ -408,6 +445,9 @@
         this.setRecalculateInfo();
     }
 
+    CGraphicObjectBase.prototype = Object.create(CBaseObject.prototype);
+    CGraphicObjectBase.prototype.constructor = CGraphicObjectBase;
+
     /**
      * Create a scheme color
      * @memberof CGraphicObjectBase
@@ -426,40 +466,6 @@
      */
     CGraphicObjectBase.prototype.setRecalculateInfo = function(){};
 
-    /**
-     * Get object Id
-     * @memberof CGraphicObjectBase
-     * @returns {string}
-     */
-    CGraphicObjectBase.prototype.Get_Id = function () {
-        return this.Id;
-    };
-
-    /**
-     * Get type object
-     * @memberof CGraphicObjectBase
-     * @returns {number}
-     */
-    CGraphicObjectBase.prototype.getObjectType = function () {
-        return AscDFH.historyitem_type_Unknown;
-    };
-
-    /**
-     * Write object to stream
-     * @memberof CGraphicObjectBase
-     */
-    CGraphicObjectBase.prototype.Write_ToBinary2 = function (oWriter) {
-        oWriter.WriteLong(this.getObjectType());
-        oWriter.WriteString2(this.Get_Id());
-    };
-
-    /**
-     * Read object from stream
-     * @memberof CGraphicObjectBase
-     */
-    CGraphicObjectBase.prototype.Read_FromBinary2 = function (oReader) {
-        this.Id = oReader.GetString2();
-    };
 
     /**
      * Get object bounds for defining group size
@@ -638,6 +644,24 @@
     CGraphicObjectBase.prototype.setNoChangeAspect = function(bValue){
         return this.setLockValue(LOCKS_MASKS.noChangeAspect, bValue);
     };
+    CGraphicObjectBase.prototype.canRotate = function() {
+        return this.getNoRot() === false;
+    };
+    CGraphicObjectBase.prototype.canResize = function() {
+        return this.getNoResize() === false;
+    };
+    CGraphicObjectBase.prototype.canMove = function() {
+        return this.getNoMove() === false;
+    };
+    CGraphicObjectBase.prototype.canGroup = function() {
+        return this.getNoGrp() === false;
+    };
+    CGraphicObjectBase.prototype.canUnGroup = function() {
+        return this.getNoUngrp() === false;
+    };
+    CGraphicObjectBase.prototype.canChangeAdjustments = function () {
+        return this.getNoAdjustHandles() === false;
+    };
     CGraphicObjectBase.prototype.Reassign_ImageUrls = function(mapUrl){
         var blip_fill;
         if(this.blipFill){
@@ -771,6 +795,10 @@
     CGraphicObjectBase.prototype.getAllRasterImages = function(mapUrl){
     };
 
+    CGraphicObjectBase.prototype.getAllSlicerViews = function(aSlicerView) {
+
+    };
+
     CGraphicObjectBase.prototype.checkCorrect = function(){
         if(this.bDeleted === true){
             return false;
@@ -806,9 +834,6 @@
         oProps.put_Type(Asc.c_oAscWatermarkType.None);
         return oProps;
     };
-
-
-
 
     CGraphicObjectBase.prototype.CheckCorrect = function(){
         return this.checkCorrect();
@@ -854,6 +879,26 @@
             this.drawingBase.ext.cy = fExtY;
             this.handleUpdateExtents();
         }
+    };
+    CGraphicObjectBase.prototype.setTransformParams = function(x, y, extX, extY, rot, flipH, flipV)
+    {
+        if(!this.spPr)
+        {
+            this.setSpPr(new AscFormat.CSpPr());
+            this.spPr.setParent(this);
+        }
+        if(!this.spPr.xfrm)
+        {
+            this.spPr.setXfrm(new AscFormat.CXfrm());
+            this.spPr.xfrm.setParent(this.spPr);
+        }
+        this.spPr.xfrm.setOffX(x);
+        this.spPr.xfrm.setOffY(y);
+        this.spPr.xfrm.setExtX(extX);
+        this.spPr.xfrm.setExtY(extY);
+        this.spPr.xfrm.setRot(rot);
+        this.spPr.xfrm.setFlipH(flipH);
+        this.spPr.xfrm.setFlipV(flipV);
     };
 
     CGraphicObjectBase.prototype.getPlaceholderType = function()
@@ -988,23 +1033,23 @@
                     cx      : extX,
                     cy      : extY
                 })));
-    
-    
+
+
                 this.drawingBase.from.col    = fromCol;
                 this.drawingBase.from.colOff = fromColOff;
                 this.drawingBase.from.row    = fromRow;
                 this.drawingBase.from.rowOff = fromRowOff;
-    
+
                 this.drawingBase.to.col    = toCol;
                 this.drawingBase.to.colOff = toColOff;
                 this.drawingBase.to.row    = toRow;
                 this.drawingBase.to.rowOff = toRowOff;
-    
+
                 this.drawingBase.Pos.X  = posX;
                 this.drawingBase.Pos.Y  = posY;
                 this.drawingBase.ext.cx = extX;
                 this.drawingBase.ext.cy = extY;
-    
+
             this.handleUpdateExtents();
         }
     };
@@ -1021,12 +1066,12 @@
             }
         }
     };
-    
+
     CGraphicObjectBase.prototype.getWorksheet = function()
     {
         return this.worksheet;
     };
-    
+
     CGraphicObjectBase.prototype.getWorkbook = function()
     {
         var oWorksheet = this.getWorksheet();
@@ -1428,6 +1473,9 @@
             return -1;
         }
         return AscFormat.hitToHandles(x, y, this);
+    };
+    CGraphicObjectBase.prototype.onMouseMove = function (e, x, y) {
+        return this.hit(x, y);
     };
     CGraphicObjectBase.prototype.drawLocks = function(transform, graphics){
         var bNotes = !!(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES);
@@ -1913,8 +1961,49 @@
         return  AscCommon.CreateDrawingPlaceholder(this.Id, aButtons, nSlideNum, { x : 0, y : 0, w : this.extX, h : this.extY }, this.transform);
     };
 
+    CGraphicObjectBase.prototype.onSlicerUpdate = function(sName){
+        return false;
+    };
 
-    function CRelSizeAnchor(){
+    CGraphicObjectBase.prototype.onSlicerLock = function(sName, bLock){
+    };
+
+    CGraphicObjectBase.prototype.onSlicerDelete = function(sName){
+        return false;
+    };
+    CGraphicObjectBase.prototype.onSlicerChangeName = function(sName, sNewName){
+        return false;
+    };
+
+    CGraphicObjectBase.prototype.onUpdate = function (oRect) {
+        if(this.drawingBase) {
+            this.drawingBase.onUpdate(oRect);
+        }
+        else {
+            if(this.group) {
+                this.group.onUpdate(oRect)
+            }
+        }
+    };
+    CGraphicObjectBase.prototype.getSlicerViewByName = function (name) {
+        return null;
+    };
+    CGraphicObjectBase.prototype.setParent2 = function(parent) {
+        this.setParent(parent);
+        if(Array.isArray(this.spTree)) {
+            for(var i = 0; i < this.spTree.length; ++i) {
+                this.spTree[i].setParent2(parent);
+            }
+        }
+    };
+    CGraphicObjectBase.prototype.documentCreateFontMap = function(oMap) {
+    };
+    CGraphicObjectBase.prototype.createFontMap = function(oMap) {
+        this.documentCreateFontMap(oMap);
+    };
+    
+    function CRelSizeAnchor() {
+        CBaseObject.call(this);
         this.fromX = null;
         this.fromY = null;
 
@@ -1925,24 +2014,16 @@
 
         this.parent = null;
         this.drawingBase = null;
-        this.Id = AscCommon.g_oIdCounter.Get_NewId();
-        AscCommon.g_oTableId.Add(this, this.Id);
     }
+
+    CRelSizeAnchor.prototype = Object.create(CBaseObject.prototype);
+    CRelSizeAnchor.prototype.constructor = CRelSizeAnchor;
+
     CRelSizeAnchor.prototype.setDrawingBase = function(drawingBase){
         this.drawingBase = drawingBase;
     };
     CRelSizeAnchor.prototype.getObjectType = function () {
         return AscDFH.historyitem_type_RelSizeAnchor;
-    };
-    CRelSizeAnchor.prototype.Get_Id = function () {
-        return this.Id;
-    };
-    CRelSizeAnchor.prototype.Write_ToBinary2 = function (oWriter) {
-        oWriter.WriteLong(this.getObjectType());
-        oWriter.WriteString2(this.Get_Id());
-    };
-    CRelSizeAnchor.prototype.Read_FromBinary2 = function (oReader) {
-        this.Id = oReader.GetString2();
     };
 
     CRelSizeAnchor.prototype.setFromTo = function (fromX, fromY, toX, toY) {
@@ -2005,6 +2086,7 @@
 
 
     function CAbsSizeAnchor(){
+        CBaseObject.call(this);
         this.fromX = null;
         this.fromY = null;
         this.toX = null;
@@ -2013,26 +2095,17 @@
 
         this.parent = null;
         this.drawingBase = null;
-        this.Id = AscCommon.g_oIdCounter.Get_NewId();
-        AscCommon.g_oTableId.Add(this, this.Id);
     }
+
+
+    CAbsSizeAnchor.prototype = Object.create(CBaseObject.prototype);
+    CAbsSizeAnchor.prototype.constructor = CAbsSizeAnchor;
     CAbsSizeAnchor.prototype.setDrawingBase = function(drawingBase){
         this.drawingBase = drawingBase;
     };
     CAbsSizeAnchor.prototype.getObjectType = function () {
         return AscDFH.historyitem_type_AbsSizeAnchor;
     };
-    CAbsSizeAnchor.prototype.Get_Id = function () {
-        return this.Id;
-    };
-    CAbsSizeAnchor.prototype.Write_ToBinary2 = function (oWriter) {
-        oWriter.WriteLong(this.getObjectType());
-        oWriter.WriteString2(this.Get_Id());
-    };
-    CAbsSizeAnchor.prototype.Read_FromBinary2 = function (oReader) {
-        this.Id = oReader.GetString2();
-    };
-
     CAbsSizeAnchor.prototype.setFromTo = function (fromX, fromY, extX, extY) {
         History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_AbsSizeAnchorFromX, this.fromX, fromX));
         History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_AbsSizeAnchorFromY, this.fromY, fromY));
@@ -2119,6 +2192,7 @@
 
 
     window['AscFormat'] = window['AscFormat'] || {};
+    window['AscFormat'].CBaseObject           = CBaseObject;
     window['AscFormat'].CGraphicObjectBase    = CGraphicObjectBase;
     window['AscFormat'].CGraphicBounds        = CGraphicBounds;
     window['AscFormat'].checkNormalRotate     = checkNormalRotate;

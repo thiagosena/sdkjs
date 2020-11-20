@@ -675,8 +675,9 @@ function CEditorPage(api)
 			return false;
 		};
 
-		if (!this.m_oApi.isMobileVersion)
+		if (!this.m_oApi.isMobileVersion && false)
 		{
+			// перешли на pointer - евенты
 			var _check_e = function(e)
 			{
 				if (e.touches && e.touches[0])
@@ -699,7 +700,8 @@ function CEditorPage(api)
 				AscCommon.isTouchMove 		= false;
 				AscCommon.TouchStartTime 	= new Date().getTime();
 				AscCommon.stopEvent(e);
-				var _ret = this.onmousedown(_check_e(e), true);
+				var _mouse_down = AscCommon.getMouseEvent(this, "down");
+				var _ret = _mouse_down ? _mouse_down.call(this, _check_e(e), true) : false;
 				global_mouseEvent.KoefPixToMM = _old;
 
 				if ((document.activeElement !== undefined) &&
@@ -719,7 +721,8 @@ function CEditorPage(api)
 				AscCommon.isTouch 		= true;
 				AscCommon.isTouchMove 	= true;
 				AscCommon.stopEvent(e);
-				var _ret = this.onmousemove(_check_e(e), true);
+				var _mouse_move = AscCommon.getMouseEvent(this, "move");
+				var _ret = _mouse_move ? _mouse_move.call(this, _check_e(e), true) : false;
 				global_mouseEvent.KoefPixToMM = _old;
 				return _ret;
 			};
@@ -734,7 +737,8 @@ function CEditorPage(api)
 				AscCommon.isTouch = false;
 				AscCommon.stopEvent(e);
 				var _natE = _check_e(e);
-				var _ret = this.onmouseup(_natE, undefined, true);
+				var _mouse_up = AscCommon.getMouseEvent(this, "up");
+				var _ret = _mouse_up ? _mouse_up.call(this, _natE, undefined, true) : false;
 				global_mouseEvent.KoefPixToMM = _old;
 
 				if (!AscCommon.isTouchMove && (-1 != AscCommon.TouchStartTime) && (Math.abs(AscCommon.TouchStartTime - (new Date().getTime())) > 900))
@@ -2628,6 +2632,9 @@ function CEditorPage(api)
 			return;
 
 		settings = this.CreateScrollSettings();
+		settings.isHorizontalScroll = true;
+		settings.isVerticalScroll = false;
+		settings.contentW = this.m_dDocumentWidth;
 		if (this.m_oScrollHor_)
 			this.m_oScrollHor_.Repos(settings, this.m_bIsHorScrollVisible);
 		else
@@ -2651,6 +2658,9 @@ function CEditorPage(api)
 		}
 
 		settings = this.CreateScrollSettings();
+		settings.isHorizontalScroll = false;
+		settings.isVerticalScroll = true;
+		settings.contentH = this.m_dDocumentHeight;
 		if (this.m_oScrollVer_)
 		{
 			this.m_oScrollVer_.Repos(settings, undefined, true);
@@ -2688,6 +2698,16 @@ function CEditorPage(api)
 			this.m_dScrollX = this.m_dScrollX_max;
 		if (this.m_dScrollY >= this.m_dScrollY_max)
 			this.m_dScrollY = this.m_dScrollY_max;
+	};
+
+	this.private_RefreshAll = function()
+	{
+		AscCommon.g_fontManager.ClearFontsRasterCache();
+
+		if (AscCommon.g_fontManager2)
+			AscCommon.g_fontManager2.ClearFontsRasterCache();
+
+		this.OnRePaintAttack();
 	};
 
 	this.OnRePaintAttack = function()
@@ -2819,10 +2839,6 @@ function CEditorPage(api)
 
 			// этот флаг для того, чтобы не делался лишний зум и т.д.
 			this.m_bIsHorScrollVisible = false;
-
-			var hor_scroll         = document.getElementById('panel_hor_scroll');
-			hor_scroll.style.width = this.m_dDocumentWidth + "px";
-
 			return false;
 		}
 
@@ -2838,9 +2854,6 @@ function CEditorPage(api)
 		{
 			this.m_bIsHorScrollVisible = true;
 		}
-
-		var hor_scroll         = document.getElementById('panel_hor_scroll');
-		hor_scroll.style.width = this.m_dDocumentWidth + "px";
 
 		if (this.m_bIsHorScrollVisible)
 		{
@@ -3034,7 +3047,7 @@ function CEditorPage(api)
 				drDoc.DrawFrameTrack(overlay);
 			}
 
-			if (drDoc.MathRect.IsActive)
+			if (drDoc.MathTrack.IsActive())
 			{
 				drDoc.DrawMathTrack(overlay);
 			}
@@ -3543,8 +3556,6 @@ function CEditorPage(api)
 		// теперь нужно выставить размеры для скроллов
 		this.checkNeedHorScroll();
 
-		document.getElementById('panel_right_scroll').style.height = this.m_dDocumentHeight + "px";
-
 		this.UpdateScrolls();
 
 		if (this.MobileTouchManager)
@@ -3704,6 +3715,7 @@ function CEditorPage(api)
 		}
 		if (oWordControl.m_bIsScroll)
 		{
+			isRepaint = true;
 			oWordControl.m_bIsScroll = false;
 			oWordControl.OnPaint();
 

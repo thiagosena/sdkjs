@@ -88,9 +88,6 @@ function CImageShape()
     this.parentCrop = null;
 
     this.shdwSp = null;
-
-    this.Id = AscCommon.g_oIdCounter.Get_NewId();
-    AscCommon.g_oTableId.Add( this, this.Id );
 }
 
 	CImageShape.prototype = Object.create(AscFormat.CGraphicObjectBase.prototype);
@@ -305,34 +302,17 @@ CImageShape.prototype.getRectBounds = function()
 
 CImageShape.prototype.canRotate = function()
 {
-    if(this.isCrop){
+    if(this.isCrop)
+    {
         return false;
     }
-    if(this.cropObject){
+    if(this.cropObject)
+    {
         return false;
     }
-    return true;
+    return AscFormat.CGraphicObjectBase.prototype.canRotate.call(this);
 };
 
-CImageShape.prototype.canResize = function()
-{
-    return true;//TODO
-};
-
-CImageShape.prototype.canMove = function()
-{
-    return true;//TODO
-};
-
-CImageShape.prototype.canGroup = function()
-{
-    return true;//TODO
-};
-
-CImageShape.prototype.canChangeAdjustments = function()
-{
-    return true;//TODO
-};
 
 CImageShape.prototype.createRotateTrack = function()
 {

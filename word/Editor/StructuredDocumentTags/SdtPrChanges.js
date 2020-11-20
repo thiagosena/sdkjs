@@ -57,7 +57,8 @@ AscDFH.changesFactory[AscDFH.historyitem_SdtPr_ShowingPlcHdr]    = CChangesSdtPr
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_Equation]         = CChangesSdtPrEquation;
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_Text]             = CChangesSdtPrText;
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_Temporary]        = CChangesSdtPrTemporary;
-
+AscDFH.changesFactory[AscDFH.historyitem_SdtPr_TextForm]         = CChangesSdtPrTextForm;
+AscDFH.changesFactory[AscDFH.historyitem_SdtPr_FormPr]           = CChangesSdtPrFormPr;
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
 //----------------------------------------------------------------------------------------------------------------------
@@ -123,6 +124,13 @@ AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_Text] = [
 AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_Temporary] = [
 	AscDFH.historyitem_SdtPr_Temporary
 ];
+AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_TextForm] = [
+	AscDFH.historyitem_SdtPr_TextForm
+];
+AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_FormPr] = [
+	AscDFH.historyitem_SdtPr_FormPr
+];
+
 //----------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -561,6 +569,10 @@ CChangesSdtPrPlaceholder.prototype.private_SetValue = function(Value)
 {
 	this.Class.Pr.Placeholder = Value;
 };
+CChangesSdtPrPlaceholder.prototype.IsNeedRecalculate = function()
+{
+	return false;
+};
 
 /**
  * @constructor
@@ -621,4 +633,50 @@ CChangesSdtPrTemporary.prototype.Type = AscDFH.historyitem_SdtPr_Temporary;
 CChangesSdtPrTemporary.prototype.private_SetValue = function(Value)
 {
 	this.Class.Pr.Temporary = Value;
+};
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseObjectProperty}
+ */
+function CChangesSdtPrTextForm(Class, Old, New)
+{
+	AscDFH.CChangesBaseObjectProperty.call(this, Class, Old, New);
+}
+CChangesSdtPrTextForm.prototype = Object.create(AscDFH.CChangesBaseObjectProperty.prototype);
+CChangesSdtPrTextForm.prototype.constructor = CChangesSdtPrTextForm;
+CChangesSdtPrTextForm.prototype.Type = AscDFH.historyitem_SdtPr_TextForm;
+CChangesSdtPrTextForm.prototype.private_SetValue = function(Value)
+{
+	this.Class.Pr.TextForm = Value;
+
+	if (this.Class.Recalc_RunsCompiledPr)
+		this.Class.Recalc_RunsCompiledPr();
+};
+CChangesSdtPrTextForm.prototype.private_CreateObject = function()
+{
+	return new CSdtTextFormPr();
+};
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseObjectProperty}
+ */
+function CChangesSdtPrFormPr(Class, Old, New)
+{
+	AscDFH.CChangesBaseObjectProperty.call(this, Class, Old, New);
+}
+CChangesSdtPrFormPr.prototype = Object.create(AscDFH.CChangesBaseObjectProperty.prototype);
+CChangesSdtPrFormPr.prototype.constructor = CChangesSdtPrFormPr;
+CChangesSdtPrFormPr.prototype.Type = AscDFH.historyitem_SdtPr_FormPr;
+CChangesSdtPrFormPr.prototype.private_SetValue = function(Value)
+{
+	this.Class.Pr.FormPr = Value;
+
+	var oLogicDocument = this.Class.GetLogicDocument();
+	if (oLogicDocument)
+		oLogicDocument.RegisterForm(this.Class);
+
+};
+CChangesSdtPrFormPr.prototype.private_CreateObject = function()
+{
+	return new CSdtFormPr();
 };

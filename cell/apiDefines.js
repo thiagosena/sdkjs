@@ -110,7 +110,8 @@ var c_oAscSelectionDialogType = {
   CustomSort: 5,
   PivotTableData: 6,
   PivotTableReport: 7,
-  PrintTitles: 8
+  PrintTitles: 8,
+  Function: 9
 };
 
 var c_oAscScrollType = {
@@ -130,7 +131,8 @@ var c_oAscMouseMoveType = {
   LockedObject: 3,
   ResizeColumn: 4,
   ResizeRow: 5,
-  Filter: 6
+  Filter: 6,
+  Tooltip: 7
 };
 
 var c_oAscMouseMoveLockedObjectType = {
@@ -152,7 +154,8 @@ var c_oAscLockTypeElemSubType = {
   DeleteRows: 3,
   InsertRows: 4,
   ChangeProperties: 5,
-  DefinedNames: 6
+  DefinedNames: 6,
+  NamedSheetView: 7
 };
 
 var c_oAscRecalcIndexTypes = {
@@ -200,18 +203,19 @@ var c_oAscDynamicAutoFilter = {
     nextQuarter: 20,
     nextWeek: 21,
     nextYear: 22,
-    q1: 23,
-    q2: 24,
-    q3: 25,
-    q4: 26,
-    thisMonth: 27,
-    thisQuarter: 28,
-    thisWeek: 29,
-    thisYear: 30,
-    today: 31,
-    tomorrow: 32,
-    yearToDate: 33,
-    yesterday: 34
+    nullType: 23,
+    q1: 24,
+    q2: 25,
+    q3: 26,
+    q4: 27,
+    thisMonth: 28,
+    thisQuarter: 29,
+    thisWeek: 30,
+    thisYear: 31,
+    today: 32,
+    tomorrow: 33,
+    yearToDate: 34,
+    yesterday: 35
 };
 
 var c_oAscTop10AutoFilter = {
@@ -228,7 +232,8 @@ var c_oAscChangeSelectionFormatTable = {
 	all: 1,
 	data: 2,
 	row: 3,
-	column: 4
+	column: 4,
+	dataColumn: 5
 };
 
 var c_oAscChangeTableStyleInfo = {
@@ -303,7 +308,8 @@ var c_oTargetType = {
   FrozenAnchorH: 14,
   FrozenAnchorV: 15,
   GroupRow: 16,
-  GroupCol: 17
+  GroupCol: 17,
+  TableSelectionChange: 18
 };
 
 var c_oAscAutoFilterTypes = {
@@ -367,7 +373,9 @@ var c_oAscPopUpSelectorType = {
   None: 0,
   Func: 1,
   Range: 2,
-  Table: 3
+  Table: 3,
+  Slicer: 4,
+  TotalRowFunc: 5
 };
   /** @enum */
   var c_oSerFormat = {
@@ -473,6 +481,11 @@ var c_oAscPopUpSelectorType = {
 
   var c_kMaxPrintPages = 1500;
 
+  var c_oAscFrozenPaneBorderType = {
+    shadow: 1,
+    line: 2
+  };
+
   //----------------------------------------------------------export----------------------------------------------------
   window['AscCommonExcel'] = window['AscCommonExcel'] || {};
   window['AscCommonExcel'].c_oAscDrawDepOptions = c_oAscDrawDepOptions;
@@ -564,6 +577,7 @@ var c_oAscPopUpSelectorType = {
   prot['PivotTableData'] = prot.PivotTableData;
   prot['PivotTableReport'] = prot.PivotTableReport;
   prot['PrintTitles'] = prot.PrintTitles;
+  prot['Function'] = prot.Function;
   window['Asc']['c_oAscHyperlinkType'] = window['Asc'].c_oAscHyperlinkType = c_oAscHyperlinkType;
   prot = c_oAscHyperlinkType;
   prot['WebLink'] = prot.WebLink;
@@ -577,6 +591,7 @@ var c_oAscPopUpSelectorType = {
   prot['ResizeColumn'] = prot.ResizeColumn;
   prot['ResizeRow'] = prot.ResizeRow;
   prot['Filter'] = prot.Filter;
+  prot['Tooltip'] = prot.Tooltip;
   window['Asc']['c_oAscMouseMoveLockedObjectType'] = window['Asc'].c_oAscMouseMoveLockedObjectType = c_oAscMouseMoveLockedObjectType;
   prot = c_oAscMouseMoveLockedObjectType;
   prot['None'] = prot.None;
@@ -624,6 +639,7 @@ var c_oAscPopUpSelectorType = {
   prot['data'] = prot.data;
   prot['row'] = prot.row;
   prot['column'] = prot.column;
+  prot['dataColumn'] = prot.dataColumn;
   window['Asc']['c_oAscChangeTableStyleInfo'] = window['Asc'].c_oAscChangeTableStyleInfo = c_oAscChangeTableStyleInfo;
   prot = c_oAscChangeTableStyleInfo;
   prot['columnFirst'] = prot.columnFirst;
@@ -666,6 +682,8 @@ var c_oAscPopUpSelectorType = {
   prot['Func'] = prot.Func;
   prot['Range'] = prot.Range;
   prot['Table'] = prot.Table;
+  prot['Slicer'] = prot.Slicer;
+  prot['TotalRowFunc'] = prot.TotalRowFunc;
   window['Asc']['c_oAscSparklineType'] = window['Asc'].c_oAscSparklineType = c_oAscSparklineType;
   prot = c_oAscSparklineType;
   prot['Line'] = prot.Line;
@@ -753,5 +771,12 @@ var c_oAscPopUpSelectorType = {
   prot['worksheet'] = prot.worksheet;
   prot['table'] = prot.table;
   prot['pivot'] = prot.pivot;
+
+
+  window['Asc']['c_oAscFrozenPaneBorderType'] = window['Asc'].c_oAscFrozenPaneBorderType = c_oAscFrozenPaneBorderType;
+  prot = c_oAscFrozenPaneBorderType;
+  prot['shadow'] = prot.shadow;
+  prot['line'] = prot.line;
+
 
 })(window);

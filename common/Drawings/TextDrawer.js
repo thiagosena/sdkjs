@@ -38,7 +38,7 @@
 var g_fontApplication = AscFonts.g_fontApplication;
 
 var g_oTextMeasurer = AscCommon.g_oTextMeasurer;
-    
+
 var Geometry = AscFormat.Geometry;
 var EPSILON_TEXT_AUTOFIT = AscFormat.EPSILON_TEXT_AUTOFIT;
 var ObjectToDraw = AscFormat.ObjectToDraw;
@@ -185,7 +185,7 @@ CDocContentStructure.prototype.checkByWarpStruct = function(oWarpStruct, dWidth,
                 else
                 {
                     oNextPointOnPolygon = this.checkTransformByOddPath(oMatrix, oWarpedObject, aWarpedObjects[t+1], oNextPointOnPolygon, dContentHeight, dKoeff, bArcDown, oPolygon, XLimit);
-                    oWarpedObject.geometry.transform(oMatrix);
+                    oWarpedObject.geometry.transform(oMatrix, dKoeff);
                 }
             }
         }
@@ -930,7 +930,7 @@ function CTextDrawer(dWidth, dHeight, bDivByLInes, oTheme, bDivGlyphs)
         this.m_aByParagraphs = [];
     }
 
-
+    this.m_bIsTextDrawer = true;
     this.pathMemory = new AscFormat.CPathMemory();
 }
 
@@ -953,6 +953,25 @@ CTextDrawer.prototype =
         {
             this.m_oPen.Color.A = a;
         }
+        var oLastCommand = this.m_aStack[this.m_aStack.length - 1];
+        if(oLastCommand)
+        {
+            if(oLastCommand.m_nType === DRAW_COMMAND_LINE && 
+                oLastCommand.m_nDrawType === 3)
+            {
+                if(this.m_oTextPr && this.m_oTheme)
+                {
+                    var oTextPr = this.m_oTextPr.Copy();
+                    if(!oTextPr.TextOutline)
+                    {
+                        oTextPr.TextOutline = new AscFormat.CLn();
+                    }
+                    oTextPr.TextOutline.Fill = AscFormat.CreateUnfilFromRGB(r, g, b);
+                    this.SetTextPr(oTextPr, this.m_oTheme);
+                    return;
+                }
+            }
+        }
         this.Get_PathToDraw(false, true);
     },
     AddSmartRect: function()
@@ -972,15 +991,32 @@ CTextDrawer.prototype =
     // brush methods
     b_color1 : function(r,g,b,a)
     {
-        if (this.m_oBrush.Color1.R != r || this.m_oBrush.Color1.G != g || this.m_oBrush.Color1.B != b)
+        if (this.m_oBrush.Color1.R !== r || this.m_oBrush.Color1.G !== g || this.m_oBrush.Color1.B !== b)
         {
             this.m_oBrush.Color1.R = r;
             this.m_oBrush.Color1.G = g;
             this.m_oBrush.Color1.B = b;
         }
-        if (this.m_oBrush.Color1.A != a)
+        if (this.m_oBrush.Color1.A !== a)
         {
             this.m_oBrush.Color1.A = a;
+        }
+        var oLastCommand = this.m_aStack[this.m_aStack.length - 1];
+        if(oLastCommand)
+        {
+            if(oLastCommand.m_nType === DRAW_COMMAND_LINE && 
+                (oLastCommand.m_nDrawType === 0))
+            {
+                if(this.m_oTextPr && this.m_oTheme)
+                {
+                    var oTextPr = this.m_oTextPr.Copy();
+                    oTextPr.Unifill = undefined;
+                    oTextPr.TextFill = undefined;
+                    oTextPr.Color = new CDocumentColor(r, g, b, false);
+                    this.SetTextPr(oTextPr, this.m_oTheme);
+                    return;
+                }
+            }
         }
         this.Get_PathToDraw(false, true);
     },
@@ -1682,7 +1718,7 @@ CTextDrawer.prototype =
             style += 1;
 
         var fontinfo = g_fontApplication.GetFontInfo(_lastFont.Name, style, this.LastFontOriginInfo);
-        
+
         if (this.m_oFont.Name != fontinfo.Name)
         {
             this.m_oFont.Name = fontinfo.Name;

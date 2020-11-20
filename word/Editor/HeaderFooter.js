@@ -496,7 +496,7 @@ CHeaderFooter.prototype =
         return true;
     },
 
-    Is_InTable : function(bReturnTopTable)
+    IsInTable : function(bReturnTopTable)
     {
         if ( true === bReturnTopTable )
             return null;
@@ -935,10 +935,20 @@ CHeaderFooter.prototype =
         return this.Content.GetAllParagraphs(Props, ParaArray);
     },
 
+	GetAllTables : function(oProps, arrTables)
+	{
+		return this.Content.GetAllTables(oProps, arrTables);
+	},
+
 	GetAllDrawingObjects : function(arrDrawings)
 	{
 		return this.Content.GetAllDrawingObjects(arrDrawings);
-	},
+    },
+
+    UpdateBookmarks : function(oBookmarkManager)
+    {
+        this.Content.UpdateBookmarks(oBookmarkManager);
+    },
 
 	GetPrevElementEndInfo : function(CurElement)
     {
@@ -1524,10 +1534,10 @@ CHeaderFooterController.prototype =
 //-----------------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------------   
-    RecalculateCurPos : function(bUpdateX, bUpdateY)
+    RecalculateCurPos : function(bUpdateX, bUpdateY, isUpdateTarget)
 	{
 		if (this.CurHdrFtr)
-			return this.CurHdrFtr.RecalculateCurPos(bUpdateX, bUpdateY);
+			return this.CurHdrFtr.RecalculateCurPos(bUpdateX, bUpdateY, isUpdateTarget);
 
 		return null;
 	},
@@ -1756,7 +1766,7 @@ CHeaderFooterController.prototype =
             var Coords = this.DrawingDocument.ConvertCoordsToCursorWR( PageLimits.X, PageLimits.Y, PageNum_Abs );
             MMData_header.X_abs            = Coords.X;
             MMData_header.Y_abs            = Coords.Y + 2;
-            MMData_header.Type             = AscCommon.c_oAscMouseMoveDataTypes.LockedObject;
+            MMData_header.Type             = Asc.c_oAscMouseMoveDataTypes.LockedObject;
             MMData_header.UserId           = this.Lock.Get_UserId();
             MMData_header.HaveChanges      = this.Lock.Have_Changes();
             MMData_header.LockedObjectType = c_oAscMouseMoveLockedObjectType.Header;
@@ -1766,7 +1776,7 @@ CHeaderFooterController.prototype =
             Coords = this.DrawingDocument.ConvertCoordsToCursorWR( PageLimits.X, PageLimits.YLimit, PageNum_Abs );
             MMData_footer.X_abs            = Coords.X;
             MMData_footer.Y_abs            = Coords.Y - 2;
-            MMData_footer.Type             = AscCommon.c_oAscMouseMoveDataTypes.LockedObject;
+            MMData_footer.Type             = Asc.c_oAscMouseMoveDataTypes.LockedObject;
             MMData_footer.UserId           = this.Lock.Get_UserId();
             MMData_footer.HaveChanges      = this.Lock.Have_Changes();
             MMData_footer.LockedObjectType = c_oAscMouseMoveLockedObjectType.Footer;
