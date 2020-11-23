@@ -526,20 +526,8 @@ function CHorRuler()
         //context.shadowBlur = 0;
         //context.shadowColor = "#81878F";
 
-        context.strokeStyle = GlobalSkin.RulerOutline;
-
+        context.beginPath();
         context.lineWidth = Math.round(dPR);
-        context.strokeRect(indent, this.m_nTop + indent, Math.max(intW - 1, 1), this.m_nBottom - this.m_nTop);
-        context.beginPath();
-        context.moveTo(left_margin + indent, this.m_nTop + indent);
-        context.lineTo(left_margin + indent, this.m_nBottom - indent);
-
-        context.moveTo(right_margin + indent, this.m_nTop + indent);
-        context.lineTo(right_margin + indent, this.m_nBottom - indent);
-
-        context.stroke();
-        context.beginPath();
-
         context.strokeStyle = "#585B5E";
         context.fillStyle = "#585B5E";
 
@@ -898,6 +886,18 @@ function CHorRuler()
                 }
             }
         }
+
+        context.beginPath();
+        context.strokeStyle = GlobalSkin.RulerOutline;
+        context.strokeRect(indent, this.m_nTop + indent, Math.max(intW - 1, 1), this.m_nBottom - this.m_nTop);
+        context.beginPath();
+        context.moveTo(left_margin + indent, this.m_nTop + indent);
+        context.lineTo(left_margin + indent, this.m_nBottom - indent);
+
+        context.moveTo(right_margin + indent, this.m_nTop + indent);
+        context.lineTo(right_margin + indent, this.m_nBottom - indent);
+
+        context.stroke();
     }
 
     this.CorrectTabs = function()
@@ -2901,20 +2901,8 @@ function CVerRuler()
             context.beginPath();
         }
 
-		// рамка
-        context.strokeStyle = GlobalSkin.RulerOutline;
+        context.beginPath();
         context.lineWidth = Math.round(dPR);
-        context.strokeRect(this.m_nLeft + indent, indent, this.m_nRight - this.m_nLeft, Math.max(intH - 1, 1));
-        context.beginPath();
-        context.moveTo(this.m_nLeft + indent, top_margin + indent);
-        context.lineTo(this.m_nRight - indent, top_margin + indent);
-
-        context.moveTo(this.m_nLeft + indent, bottom_margin + indent);
-        context.lineTo(this.m_nRight - indent, bottom_margin + indent);
-
-        context.stroke();
-        context.beginPath();
-
         context.strokeStyle = "#585B5E";
         context.fillStyle = "#585B5E";
 
@@ -3218,6 +3206,18 @@ function CVerRuler()
                 start_dark = (((markup.Rows[i].Y + markup.Rows[i].H) * dKoef_mm_to_pix) >> 0) + indent;
             }
         }
+
+        // рамка
+        context.beginPath();
+        context.strokeStyle = GlobalSkin.RulerOutline;
+        context.strokeRect(this.m_nLeft + indent, indent, this.m_nRight - this.m_nLeft, Math.max(intH - 1, 1));
+        context.beginPath();
+        context.moveTo(this.m_nLeft + indent, top_margin + indent);
+        context.lineTo(this.m_nRight - indent, top_margin + indent);
+
+        context.moveTo(this.m_nLeft + indent, bottom_margin + indent);
+        context.lineTo(this.m_nRight - indent, bottom_margin + indent);
+        context.stroke();
     }
 
     this.OnMouseMove = function(left, top, e)
