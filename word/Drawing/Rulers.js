@@ -292,9 +292,9 @@ function CHorRuler()
 
         var widthNew    = dKoef_mm_to_pix * this.m_oPage.width_mm;
 
-        var _width      = 10 + widthNew;
+        var _width      = 10 * Math.round(dPR) + widthNew;
         if (dPR > 1)
-            _width += Math.ceil(6 * dPR);
+            _width += Math.round(dPR);
 
         var _height     = 8 * g_dKoef_mm_to_pix * dPR;
 
@@ -442,7 +442,7 @@ function CHorRuler()
         this.m_nBottom  = Math.round(19 * dPR);//(5.2 * g_dKoef_mm_to_pix) >> 0;
 
         var context = this.m_oCanvas.getContext('2d');
-        context.setTransform(1, 0, 0, 1, Math.round(5 * dPR), 0);
+        context.setTransform(1, 0, 0, 1, 5 * Math.round( dPR), 0);
 
 
         context.fillStyle = GlobalSkin.BackgroundColor;
@@ -2726,9 +2726,9 @@ function CVerRuler()
 
         var heightNew    = dKoef_mm_to_pix * this.m_oPage.height_mm;
 
-        var _height      = 10 + heightNew;
+        var _height      = Math.round(10 * dPR) + heightNew;
         if (dPR > 1)
-            _height += Math.ceil(6 * dPR);
+            _height += Math.round(dPR);
 
         var _width       = 5 * g_dKoef_mm_to_pix * dPR;
 
