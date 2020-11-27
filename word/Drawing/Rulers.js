@@ -2309,7 +2309,7 @@ function CHorRuler()
     this.BlitToMain = function(left, top, htmlElement)
     {
         var dPR = window.devicePixelRatio;
-        left *= dPR;
+        left = Math.round(dPR * left);
         var _margin_left = this.m_dMarginLeft;
         var _margin_right = this.m_dMarginRight;
         if (this.CurrentObjectType == RULER_OBJECT_TYPE_TABLE || this.CurrentObjectType == RULER_OBJECT_TYPE_COLUMNS)
@@ -3646,7 +3646,7 @@ function CVerRuler()
         if (!this.RepaintChecker.BlitAttack && top == this.RepaintChecker.BlitTop)
             return;
         var dPR = window.devicePixelRatio;
-        top *= dPR;
+        top = Math.round(top * dPR);
         this.RepaintChecker.BlitTop = top;
         this.RepaintChecker.BlitAttack = false;
 
