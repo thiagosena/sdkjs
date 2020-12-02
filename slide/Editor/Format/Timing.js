@@ -142,7 +142,7 @@
         oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.bld, pr));
         this.bld = pr;
     };
-    
+
     function CBldGraphic() {
         CBldBase.call(this);
         this.bldAsOne = null;
@@ -163,21 +163,50 @@
     };
 
     function CBldOleChart() {
-        CBaseObject.call(this);
-        //TODO:
+        CBldDgm.call(this);
+        this.animBg = null;
     }
-    CBldOleChart.prototype = Object.create(CBaseObject.prototype);
+    CBldOleChart.prototype = Object.create(CBldDgm.prototype);
     CBldOleChart.prototype.constructor = CBldOleChart;
+    CBldOleChart.prototype.getObjectType = function() {
+        return AscDFH.historyitem_type_Unknown;
+    };
+    CBldOleChart.prototype.setAnimBg = function(pr) {
+        oHistory.Add(new CChangeBool(this, AscDFH.historyitem_Unknown_Unknown, this.bldSub, pr));
+        this.animBg = pr;
+    };
 
     function CBldP() {
-        CBaseObject.call(this);
-        //TODO:
+        CBldOleChart.call(this);
+        this.advAuto = null;
+        this.autoUpdateAnimB = null;
+        this.bldLvl = null;
+        this.build = null;
+        this.rev = null;
     }
-    CBldP.prototype = Object.create(CBaseObject.prototype);
+    CBldP.prototype = Object.create(CBldOleChart.prototype);
     CBldP.prototype.constructor = CBldP;
-
-
-
-
-
+    CBldP.prototype.getObjectType = function() {
+        return AscDFH.historyitem_type_Unknown;
+    };
+    CBldP.prototype.setAdvAuto = function(pr) {
+        oHistory.Add(new CChangeBool(this, AscDFH.historyitem_Unknown_Unknown, this.advAuto, pr));
+        this.advAuto = pr;
+    };
+    CBldP.prototype.setAutoUpdateAnimB = function(pr) {
+        oHistory.Add(new CChangeBool(this, AscDFH.historyitem_Unknown_Unknown, this.autoUpdateAnimB, pr));
+        this.autoUpdateAnimB = pr;
+    };
+    CBldP.prototype.setBldLvl = function(pr) {
+        oHistory.Add(new CChangeBool(this, AscDFH.historyitem_Unknown_Unknown, this.bldLvl, pr));
+        this.bldLvl = pr;
+    };
+    CBldP.prototype.setBuild = function(pr) {
+        oHistory.Add(new CChangeBool(this, AscDFH.historyitem_Unknown_Unknown, this.build, pr));
+        this.build = pr;
+    };
+    CBldP.prototype.setRev = function(pr) {
+        oHistory.Add(new CChangeBool(this, AscDFH.historyitem_Unknown_Unknown, this.rev, pr));
+        this.rev = pr;
+    };
 })(window);
