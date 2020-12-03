@@ -56,12 +56,16 @@
         return this.classType;
     };
 
-
     function InitClass(fClass, fBase, nType) {
         fClass.prototype = Object.create(fBase.prototype);
         fClass.prototype.constructor = fClass;
         fClass.prototype.classType = nType;
     }
+
+    function CEmptyObject() {
+        CBaseFormatObject.call(this);
+    }
+    InitClass(CEmptyObject, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
 
     function CTiming() {
         CBaseFormatObject.call(this);
@@ -78,55 +82,42 @@
         this.tnLst = oPr;
     };
 
-    function CBldLst() {
-        CBaseFormatObject.call(this);
-        this.list = [];
-    }
-    InitClass(CBldLst, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
-    CBldLst.prototype.addToLst = function(nIdx, oPr) {
-        var nInsertIdx = Math.min(this.list.length, Math.max(0, nIdx));
-        History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_Unknown_Unknown, nInsertIdx, [oPr], true));
-        this.list.splice(nInsertIdx, 0, oPr);
-    };
-    CBldLst.prototype.removeFromLst = function(nIdx) {
-        if(nIdx > -1 && nIdx < this.list.length) {
-            History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_Unknown_Unknown, nIdx, [this.list[nIdx]], true));
-            this.list.splice(nIdx, 1);
-        }
-    };
-
-
-    function CBaseLst() {
+    function CCommonTimingList() {
         CBaseFormatObject.call(this);
         this.list = []
     }
-    InitClass(CBaseLst, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
-    CBaseLst.prototype.addToLst = function(nIdx, oPr) {
+    InitClass(CCommonTimingList, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CCommonTimingList.prototype.addToLst = function(nIdx, oPr) {
         var nInsertIdx = Math.min(this.list.length, Math.max(0, nIdx));
         History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_Unknown_Unknown, nInsertIdx, [oPr], true));
         this.list.splice(nInsertIdx, 0, oPr);
     };
-    CBaseLst.prototype.removeFromLst = function(nIdx) {
+    CCommonTimingList.prototype.removeFromLst = function(nIdx) {
         if(nIdx > -1 && nIdx < this.list.length) {
             History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_Unknown_Unknown, nIdx, [this.list[nIdx]], true));
             this.list.splice(nIdx, 1);
         }
     };
 
-    function CBldBase() {
+    function CObjectTarget() {
         CBaseFormatObject.call(this);
-        this.grpId = null;
         this.spid = null;
+    }
+    InitClass(CObjectTarget, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CObjectTarget.prototype.setSpid = function(pr) {
+        oHistory.Add(new CChangeString(this, AscDFH.historyitem_Unknown_Unknown, this.spid, pr));
+        this.spid = pr;
+    };
+
+    function CBldBase() {
+        CObjectTarget.call(this);
+        this.grpId = null;
         this.uiExpand = null;
     }
-    InitClass(CBldBase, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    InitClass(CBldBase, CObjectTarget, AscDFH.historyitem_type_Unknown);
     CBldBase.prototype.setGrpId = function(pr) {
         oHistory.Add(new CChangeString(this, AscDFH.historyitem_Unknown_Unknown, this.grpId, pr));
         this.grpId = pr;
-    };
-    CBldBase.prototype.setSpid = function(pr) {
-        oHistory.Add(new CChangeString(this, AscDFH.historyitem_Unknown_Unknown, this.spid, pr));
-        this.spid = pr;
     };
     CBldBase.prototype.setUiExpand = function(pr) {
         oHistory.Add(new CChangeString(this, AscDFH.historyitem_Unknown_Unknown, this.uiExpand, pr));
@@ -203,10 +194,6 @@
         this.rev = pr;
     };
 
-    function CTmplLst() {
-        CBaseLst.call(this);
-    }
-    InitClass(CTmplLst, CBaseLst, AscDFH.historyitem_type_Unknown);
 
     function CTmpl() {
         CBaseFormatObject.call(this);
@@ -222,11 +209,6 @@
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.tnLst, pr));
         this.tnLst = pr;
     };
-
-    function CTnLst() {
-        CBaseLst.call(this);
-    }
-    InitClass(CTnLst, CBaseLst, AscDFH.historyitem_type_Unknown);
 
     function CAnim() {
         CBaseFormatObject.call(this);
@@ -267,4 +249,409 @@
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.valueType, pr));
         this.valueType = pr;
     };
+    function CCBhvr() {
+        CBaseFormatObject.call(this);
+        this.attrNameLst = null;
+        this.cTn = null;
+        this.tgtEl = null;
+        this.accumulate = null;
+        this.additive = null;
+        this.by = null;
+        this.from = null;
+        this.override = null;
+        this.rctx = null;
+        this.to = null;
+        this.xfrmType = null;
+    }
+    InitClass(CCBhvr, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CCBhvr.prototype.setAttrNameLst = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.attrNameLst, pr));
+        this.attrNameLst = pr;
+    };
+    CCBhvr.prototype.setCTn = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.cTn, pr));
+        this.cTn = pr;
+    };
+    CCBhvr.prototype.setTgtEl = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.tgtEl, pr));
+        this.tgtEl = pr;
+    };
+    CCBhvr.prototype.setAccumulate = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.accumulate, pr));
+        this.accumulate = pr;
+    };
+    CCBhvr.prototype.setAdditive = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.additive, pr));
+        this.additive = pr;
+    };
+    CCBhvr.prototype.setBy = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.by, pr));
+        this.by = pr;
+    };
+    CCBhvr.prototype.setFrom = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.from, pr));
+        this.from = pr;
+    };
+    CCBhvr.prototype.setOverride = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.override, pr));
+        this.override = pr;
+    };
+    CCBhvr.prototype.setRctx = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.rctx, pr));
+        this.rctx = pr;
+    };
+    CCBhvr.prototype.setTo = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.to, pr));
+        this.to = pr;
+    };
+    CCBhvr.prototype.setXfrmType = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.xfrmType, pr));
+        this.xfrmType = pr;
+    };
+
+    function CCTn() {
+        CBaseFormatObject.call(this);
+        this.childTnLst = null;
+        this.endCondLst = null;
+        this.endSync = null;
+        this.iterate = null;
+        this.stCondLst = null;
+        this.subTnLst = null;
+        this.accel = null;
+        this.afterEffect = null;
+        this.autoRev = null;
+        this.bldLvl = null;
+        this.decel = null;
+        this.display = null;
+        this.dur = null;
+        this.evtFilter = null;
+        this.fill = null;
+        this.grpId = null;
+        this.id = null;
+        this.masterRel = null;
+        this.nodePh = null;
+        this.nodeType = null;
+        this.presetClass = null;
+        this.presetID = null;
+        this.presetSubtype = null;
+        this.repeatCount = null;
+        this.repeatDur = null;
+        this.restart = null;
+        this.spd = null;
+        this.syncBehavior = null;
+        this.tmFilter = null;
+    }
+    InitClass(CCTn, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CCTn.prototype.setChildTnLst = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.childTnLst, pr));
+        this.childTnLst = pr;
+    };
+    CCTn.prototype.setEndCondLst = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.endCondLst, pr));
+        this.endCondLst = pr;
+    };
+    CCTn.prototype.setEndSync = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.endSync, pr));
+        this.endSync = pr;
+    };
+    CCTn.prototype.setIterate = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.iterate, pr));
+        this.iterate = pr;
+    };
+    CCTn.prototype.setStCondLst = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.stCondLst, pr));
+        this.stCondLst = pr;
+    };
+    CCTn.prototype.setSubTnLst = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.subTnLst, pr));
+        this.subTnLst = pr;
+    };
+    CCTn.prototype.setAccel = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.accel, pr));
+        this.accel = pr;
+    };
+    CCTn.prototype.setAfterEffect = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.afterEffect, pr));
+        this.afterEffect = pr;
+    };
+    CCTn.prototype.setAutoRev = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.autoRev, pr));
+        this.autoRev = pr;
+    };
+    CCTn.prototype.setBldLvl = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.bldLvl, pr));
+        this.bldLvl = pr;
+    };
+    CCTn.prototype.setDecel = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.decel, pr));
+        this.decel = pr;
+    };
+    CCTn.prototype.setDisplay = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.display, pr));
+        this.display = pr;
+    };
+    CCTn.prototype.setDur = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.dur, pr));
+        this.dur = pr;
+    };
+    CCTn.prototype.setEvtFilter = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.evtFilter, pr));
+        this.evtFilter = pr;
+    };
+    CCTn.prototype.setFill = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.fill, pr));
+        this.fill = pr;
+    };
+    CCTn.prototype.setGrpId = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.grpId, pr));
+        this.grpId = pr;
+    };
+    CCTn.prototype.setId = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.id, pr));
+        this.id = pr;
+    };
+    CCTn.prototype.setMasterRel = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.masterRel, pr));
+        this.masterRel = pr;
+    };
+    CCTn.prototype.setNodePh = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.nodePh, pr));
+        this.nodePh = pr;
+    };
+    CCTn.prototype.setNodeType = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.nodeType, pr));
+        this.nodeType = pr;
+    };
+    CCTn.prototype.setPresetClass = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.presetClass, pr));
+        this.presetClass = pr;
+    };
+    CCTn.prototype.setPresetID = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.presetID, pr));
+        this.presetID = pr;
+    };
+    CCTn.prototype.setPresetSubtype = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.presetSubtype, pr));
+        this.presetSubtype = pr;
+    };
+    CCTn.prototype.setRepeatCount = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.repeatCount, pr));
+        this.repeatCount = pr;
+    };
+    CCTn.prototype.setRepeatDur = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.repeatDur, pr));
+        this.repeatDur = pr;
+    };
+    CCTn.prototype.setRestart = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.restart, pr));
+        this.restart = pr;
+    };
+    CCTn.prototype.setSpd = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.spd, pr));
+        this.spd = pr;
+    };
+    CCTn.prototype.setSyncBehavior = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.syncBehavior, pr));
+        this.syncBehavior = pr;
+    };
+    CCTn.prototype.setTmFilter = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.tmFilter, pr));
+        this.tmFilter = pr;
+    };
+
+    function CCond() {
+        CBaseFormatObject.call(this);
+        this.rtn = null;
+        this.tgtEl = null;
+        this.tn = null;
+        this.delay = null;
+        this.evt = null;
+    }
+    InitClass(CCond, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CCond.prototype.setRtn = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH, historyitem_Unknown_Unknown, this.rtn, pr));
+        this.rtn = pr;
+    };
+    CCond.prototype.setTgtEl = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH, historyitem_Unknown_Unknown, this.tgtEl, pr));
+        this.tgtEl = pr;
+    };
+    CCond.prototype.setTn = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH, historyitem_Unknown_Unknown, this.tn, pr));
+        this.tn = pr;
+    };
+    CCond.prototype.setDelay = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH, historyitem_Unknown_Unknown, this.delay, pr));
+        this.delay = pr;
+    };
+    CCond.prototype.setEvt = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH, historyitem_Unknown_Unknown, this.evt, pr));
+        this.evt = pr;
+    };
+
+    function CRtn() {
+        CBaseFormatObject.call(this);
+        this.val = null;
+    }
+    InitClass(CRtn, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CRtn.prototype.setVal = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH, historyitem_Unknown_Unknown, this.val, pr));
+        this.val = pr;
+    };
+
+    function CTgtEl() {
+        CBaseObject.call(this);
+        this.inkTgt = null;//CObjectTarget
+        this.sldTgt = null;
+        this.sndTgt = null;
+        this.spTgt = null;
+    }
+    InitClass(CTgtEl, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CTgtEl.prototype.setInkTgt = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.inkTgt, pr));
+        this.inkTgt = pr;
+    };
+    CTgtEl.prototype.setSldTgt = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.sldTgt, pr));
+        this.sldTgt = pr;
+    };
+    CTgtEl.prototype.setSndTgt = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.sndTgt, pr));
+        this.sndTgt = pr;
+    };
+    CTgtEl.prototype.setSpTgt = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.spTgt, pr));
+        this.spTgt = pr;
+    };
+
+    function CSndTgt() {
+        CBaseFormatObject.call(this);
+        this.embed = null;
+        this.name = null;
+    }
+    InitClass(CSndTgt, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CSndTgt.prototype.setEmbed = function (pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.embed, pr));
+        this.embed = pr;
+    };
+    CSndTgt.prototype.setName = function (pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.name, pr));
+        this.name = pr;
+    };
+
+    function CSpTgt() {
+        CObjectTarget.call(this);
+        this.bg = null;
+        this.graphicEl = null;
+        this.oleChartEl = null;
+        this.subSp = null;
+        this.txEl = null;
+    }
+    InitClass(CSpTgt, CObjectTarget, AscDFH.historyitem_type_Unknown);
+    CSpTgt.prototype.setBg = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown, this.bg, pr));
+        this.bg = pr;
+    };
+    CSpTgt.prototype.setGraphicEl = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown, this.graphicEl, pr));
+        this.graphicEl = pr;
+    };
+    CSpTgt.prototype.setOleChartEl = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown, this.oleChartEl, pr));
+        this.oleChartEl = pr;
+    };
+    CSpTgt.prototype.setSubSp = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown, this.subSp, pr));
+        this.subSp = pr;
+    };
+    CSpTgt.prototype.setTxEl = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown, this.txEl, pr));
+        this.txEl = pr;
+    };
+
+    function CIterateData() {
+        CBaseFormatObject.call(this);
+        this.tmAbs = null;
+        this.tmPct = null;
+        this.backwards = null;
+        this.type = null;
+    }
+    InitClass(CIterateData, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CIterateData.prototype.setTmAbs = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown, this.tmAbs, pr));
+        this.tmAbs = pr;
+    };
+    CIterateData.prototype.setTmPct = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown, this.tmPct, pr));
+        this.tmPct = pr;
+    };
+    CIterateData.prototype.setBackwards = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown, this.backwards, pr));
+        this.backwards = pr;
+    };
+    CIterateData.prototype.setType = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown, this.type, pr));
+        this.type = pr;
+    };
+
+    function CTm() {
+        CBaseFormatObject.call(this);
+        this.val = null
+    }
+    InitClass(CTm, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CTm.prototype.setVal = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown, this.val, pr));
+        this.val = pr;
+    };
+
+    function CTav() {
+        CBaseFormatObject.call(this);
+        this.val = null;
+        this.fmla = null;
+        this.tm = null;
+    }
+    InitClass(CTav, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CTav.prototype.setVal = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown, this.val, pr));
+        this.val = pr;
+    };
+    CTav.prototype.setFmla = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown, this.fmla, pr));
+        this.fmla = pr;
+    };
+    CTav.prototype.setTm = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown, this.tm, pr));
+        this.tm = pr;
+    };
+
+    function CAnimVariant() {
+        CBaseFormatObject();
+        this.boolVal = null;
+        this.clrVal = null;
+        this.fltVal = null;
+        this.intVal = null;
+        this.strVal = null;
+    }
+    InitClass(CAnimVariant, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CAnimVariant.prototype.setBoolVal = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_type_Unknown, this.boolVal, pr));
+        this.boolVal = pr;
+    };
+    CAnimVariant.prototype.setClrVal = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_type_Unknown, this.clrVal, pr));
+        this.clrVal = pr;
+    };
+    CAnimVariant.prototype.setFltVal = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_type_Unknown, this.fltVal, pr));
+        this.fltVal = pr;
+    };
+    CAnimVariant.prototype.setIntVal = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_type_Unknown, this.intVal, pr));
+        this.intVal = pr;
+    };
+    CAnimVariant.prototype.setStrVal = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_type_Unknown, this.strVal, pr));
+        this.strVal = pr;
+    };
+
 })(window);
