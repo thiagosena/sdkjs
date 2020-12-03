@@ -882,4 +882,79 @@
         this.cTn = pr;
     };
 
+    function CCmd() {
+        CBaseFormatObject.call(this);
+        this.cBhvr = null;
+        this.cmd = null;
+        this.type = null;
+    }
+    InitClass(CCmd, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CCmd.prototype.setCBhvr = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cBhvr, pr));
+        this.cBhvr = pr;
+    };
+    CCmd.prototype.setCmd = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cmd, pr));
+        this.cmd = pr;
+    };
+    CCmd.prototype.setType = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.type, pr));
+        this.type = pr;
+    };
+
+
+    function CTimeNodeContainer() {//par, excl
+        CBaseFormatObject.call(this);
+        this.cTn = null;
+    }
+    InitClass(CTimeNodeContainer, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CTimeNodeContainer.prototype.setCTn = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cTn, pr));
+        this.cTn = pr;
+    };
+
+    function CSeq() {//par, excl
+        CTimeNodeContainer.call(this);
+        this.nextCondLst = null;
+        this.prevCondLst = null;
+        this.concurrent = null;
+        this.nextAc = null;
+        this.prevAc = null;
+    }
+    InitClass(CSeq, CTimeNodeContainer, AscDFH.historyitem_type_Unknown);
+    CSeq.prototype.setNextCondLst = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.nextCondLst, pr));
+        this.nextCondLst = pr;
+    };
+    CSeq.prototype.setPrevCondLst = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.prevCondLst, pr));
+        this.prevCondLst = pr;
+    };
+    CSeq.prototype.setConcurrent = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.concurrent, pr));
+        this.concurrent = pr;
+    };
+    CSeq.prototype.setNextAc = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.nextAc, pr));
+        this.nextAc = pr;
+    };
+    CSeq.prototype.setPrevAc = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.prevAc, pr));
+        this.prevAc = pr;
+    };
+
+    function CSet() {//par, excl
+        CBaseFormatObject.call(this);
+        this.cBhvr = null;
+        this.to = null;
+    }
+    InitClass(CSet, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CSet.prototype.setCBhvr = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cBhvr, pr));
+        this.cBhvr = pr;
+    };
+    CSet.prototype.setTo = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cBhvr, pr));
+        this.to = pr;
+    };
 })(window);
