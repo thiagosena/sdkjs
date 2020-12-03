@@ -612,15 +612,15 @@
     }
     InitClass(CTav, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
     CTav.prototype.setVal = function(pr) {
-        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown, this.val, pr));
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.val, pr));
         this.val = pr;
     };
     CTav.prototype.setFmla = function(pr) {
-        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown, this.fmla, pr));
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.fmla, pr));
         this.fmla = pr;
     };
     CTav.prototype.setTm = function(pr) {
-        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown, this.tm, pr));
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.tm, pr));
         this.tm = pr;
     };
 
@@ -634,11 +634,11 @@
     }
     InitClass(CAnimVariant, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
     CAnimVariant.prototype.setBoolVal = function(pr) {
-        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_type_Unknown, this.boolVal, pr));
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.boolVal, pr));
         this.boolVal = pr;
     };
     CAnimVariant.prototype.setClrVal = function(pr) {
-        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_type_Unknown, this.clrVal, pr));
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.clrVal, pr));
         this.clrVal = pr;
     };
     CAnimVariant.prototype.setFltVal = function(pr) {
@@ -652,6 +652,234 @@
     CAnimVariant.prototype.setStrVal = function(pr) {
         oHistory.Add(new CChangeLong(this, AscDFH.historyitem_type_Unknown, this.strVal, pr));
         this.strVal = pr;
+    };
+
+    function CAnimClr() {
+        CBaseFormatObject.call(this);
+        this.by = null;
+        this.cBhvr = null;
+        this.from = null;
+        this.to = null;
+        this.clrSpc = null;
+        this.dir = null;
+    }
+    InitClass(CAnimClr, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CAnimClr.prototype.setBy = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_type_Unknown, this.by, pr));
+        this.by = pr;
+    };
+    CAnimClr.prototype.setCBhvr = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_type_Unknown, this.cBhvr, pr));
+        this.cBhvr = pr;
+    };
+    CAnimClr.prototype.setFrom = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_type_Unknown, this.from, pr));
+        this.from = pr;
+    };
+    CAnimClr.prototype.setTo = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_type_Unknown, this.to, pr));
+        this.to = pr;
+    };
+    CAnimClr.prototype.setClrSpc = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_type_Unknown, this.clrSpc, pr));
+        this.clrSpc = pr;
+    };
+    CAnimClr.prototype.setDir = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_type_Unknown, this.dir, pr));
+        this.dir = pr;
+    };
+
+    function CAnimEffect() {
+        CBaseFormatObject.call(this);
+        this.cBhvr = null;
+        this.progress = null;
+        this.filter = null;
+        this.prLst = null;
+        this.transition = null;
+    }
+    InitClass(CAnimEffect, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CAnimEffect.progress.setCBhvr = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cBhvr, pr));
+        this.cBhvr = pr;
+    };
+    CAnimEffect.progress.setProgress = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.progress, pr));
+        this.progress = pr;
+    };
+    CAnimEffect.progress.setFilter = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.filter, pr));
+        this.filter = pr;
+    };
+    CAnimEffect.progress.setPrLst = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.prLst, pr));
+        this.prLst = pr;
+    };
+    CAnimEffect.progress.setTransition = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.transition, pr));
+        this.transition = pr;
+    };
+
+    function CAnimMotion() {
+        CBaseFormatObject.call(this);
+        this.by = null;
+        this.cBhvr = null;
+        this.from = null;
+        this.rCtr = null;
+        this.to = null;
+        this.origin = null;
+        this.path = null;
+        this.pathEditMode = null;
+        this.ptsTypes = null;
+        this.rAng = null;
+    }
+    InitClass(CAnimMotion, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CAnimMotion.prototype.setBy = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.by, pr));
+        this.by = pr;
+    };
+    CAnimMotion.prototype.setCBhvr = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.cBhvr, pr));
+        this.cBhvr = pr;
+    };
+    CAnimMotion.prototype.setFrom = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.from, pr));
+        this.from = pr;
+    };
+    CAnimMotion.prototype.setRCtr = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.rCtr, pr));
+        this.rCtr = pr;
+    };
+    CAnimMotion.prototype.setTo = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.to, pr));
+        this.to = pr;
+    };
+    CAnimMotion.prototype.setOrigin = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.origin, pr));
+        this.origin = pr;
+    };
+    CAnimMotion.prototype.setPath = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.path, pr));
+        this.path = pr;
+    };
+    CAnimMotion.prototype.setPathEditMode = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.pathEditMode, pr));
+        this.pathEditMode = pr;
+    };
+    CAnimMotion.prototype.setPtsTypes = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.ptsTypes, pr));
+        this.ptsTypes = pr;
+    };
+    CAnimMotion.prototype.setRAng = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.rAng, pr));
+        this.rAng = pr;
+    };
+
+    function CAnimRot() {
+        CBaseFormatObject.call(this);
+        this.cBhvr = null;
+        this.by = null;
+        this.from = null;
+        this.to = null;
+    }
+    InitClass(CAnimRot, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CAnimRot.prototype.setCBhvr = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.cBhvr, pr));
+        this.cBhvr = pr;
+    };
+    CAnimRot.prototype.setBy = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.by, pr));
+        this.by = pr;
+    };
+    CAnimRot.prototype.setFrom = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.from, pr));
+        this.from = pr;
+    };
+    CAnimRot.prototype.setTo = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.to, pr));
+        this.to = pr;
+    };
+
+    function CAnimScale() {
+        CBaseFormatObject.call(this);
+        this.cBhvr = null;
+        this.by = null;
+        this.from = null;
+        this.to = null;
+        this.zoomContents = null
+    }
+    InitClass(CAnimScale, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CAnimScale.prototype.setCBhvr = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.cBhvr, pr));
+        this.cBhvr = pr;
+    };
+    CAnimScale.prototype.setBy = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.by, pr));
+        this.by = pr;
+    };
+    CAnimScale.prototype.setFrom = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.from, pr));
+        this.from = pr;
+    };
+    CAnimScale.prototype.setTo = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.to, pr));
+        this.to = pr;
+    };
+    CAnimScale.prototype.setZoomContents = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.zoomContents, pr));
+        this.zoomContents = pr;
+    };
+
+
+    function CAudio() {
+        CBaseFormatObject.call(this);
+        this.cMediaNode = null;
+        this.isNarration = null;
+    }
+    InitClass(CAudio, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+
+    CAudio.prototype.setCMediaNode = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.cMediaNode, pr));
+        this.cMediaNode = pr;
+    };
+    CAudio.prototype.setIsNarration = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.isNarration, pr));
+        this.isNarration = pr;
+    };
+
+    function CCMediaNode() {
+        CBaseFormatObject.call(this);
+        this.cTn = null;
+        this.tgtEl = null;
+        this.mute = null;
+        this.numSld = null;
+        this.showWhenStopped = null;
+        this.vol = null;
+    }
+    InitClass(CCMediaNode, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+
+    CCMediaNode.prototype.setCTn = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cTn, pr));
+        this.cTn = pr;
+    };
+    CCMediaNode.prototype.setTgtEl = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.tgtEl, pr));
+        this.tgtEl = pr;
+    };
+    CCMediaNode.prototype.setMute = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.mute, pr));
+        this.mute = pr;
+    };
+    CCMediaNode.prototype.setNumSld = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cTn, pr));
+        this.cTn = pr;
+    };
+    CCMediaNode.prototype.setShowWhenStopped = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cTn, pr));
+        this.cTn = pr;
+    };
+    CCMediaNode.prototype.setVol = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cTn, pr));
+        this.cTn = pr;
     };
 
 })(window);
