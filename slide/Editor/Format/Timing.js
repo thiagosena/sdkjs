@@ -957,4 +957,18 @@
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cBhvr, pr));
         this.to = pr;
     };
+    function CVideo() {//par, excl
+        CBaseFormatObject.call(this);
+        this.cMediaNode = null;
+        this.fullScrn = null;
+    }
+    InitClass(CVideo, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CVideo.prototype.seCMediaNode = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cMediaNode, pr));
+        this.cMediaNode = pr;
+    };
+    CVideo.prototype.setFullScrn = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.fullScrn, pr));
+        this.fullScrn = pr;
+    };
 })(window);
