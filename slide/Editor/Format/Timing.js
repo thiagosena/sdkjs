@@ -99,7 +99,7 @@
         }
     };
 
-    function CObjectTarget() {
+    function CObjectTarget() {//subsp
         CBaseFormatObject.call(this);
         this.spid = null;
     }
@@ -194,6 +194,70 @@
         this.rev = pr;
     };
 
+    function CBldSub() {
+        CBaseFormatObject.call(this);
+        this.bldChart = null;
+        this.bldDgm = null;
+    }
+    InitClass(CBldSub, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CBldSub.prototype.setBldChart = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.bldChart, pr));
+        this.bldChart = pr;
+    };
+    CBldSub.prototype.setBldDgm = function(pr) {
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.bldDgm, pr));
+        this.bldDgm = pr;
+    };
+
+    function CDirTransition() {//CBlinds, checker, comb, cover, pull, push, randomBar, strips, wipe, zoom
+        CBaseFormatObject.call(this);
+        this.dir = null;
+    }
+    InitClass(CDirTransition, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CDirTransition.prototype.setDir = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.dir, pr));
+        this.dir = pr;
+    };
+
+    function COptionalBlackTransition() {//cut, fade
+        CBaseFormatObject.call(this);
+        this.thruBlk = null;
+    }
+    InitClass(COptionalBlackTransition, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    COptionalBlackTransition.prototype.setThruBlk = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.thruBlk, pr));
+        this.thruBlk = pr;
+    };
+
+    function CGraphicEl() {
+        CBaseFormatObject.call(this);
+        this.chart = null;
+        this.dgm = null;
+    }
+    InitClass(CGraphicEl, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CGraphicEl.prototype.setChart = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.chart, pr));
+        this.chart = pr;
+    };
+    CGraphicEl.prototype.setDgm = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.dgm, pr));
+        this.dgm = pr;
+    };
+
+    function CIndexRg() {//charrg, pRg
+        CBaseFormatObject.call(this);
+        this.st = null;
+        this.end = null;
+    }
+    InitClass(CIndexRg, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CIndexRg.prototype.setSt = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.st, pr));
+        this.st = pr;
+    };
+    CIndexRg.prototype.setEnd = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.end, pr));
+        this.end = pr;
+    };
 
     function CTmpl() {
         CBaseFormatObject.call(this);
@@ -524,7 +588,7 @@
         this.spTgt = pr;
     };
 
-    function CSndTgt() {
+    function CSndTgt() {//snd
         CBaseFormatObject.call(this);
         this.embed = null;
         this.name = null;
@@ -624,7 +688,7 @@
         this.tm = pr;
     };
 
-    function CAnimVariant() {
+    function CAnimVariant() {//progress, val
         CBaseFormatObject();
         this.boolVal = null;
         this.clrVal = null;
@@ -870,16 +934,16 @@
         this.mute = pr;
     };
     CCMediaNode.prototype.setNumSld = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cTn, pr));
-        this.cTn = pr;
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.numSld, pr));
+        this.numSld = pr;
     };
     CCMediaNode.prototype.setShowWhenStopped = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cTn, pr));
-        this.cTn = pr;
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.showWhenStopped, pr));
+        this.showWhenStopped = pr;
     };
     CCMediaNode.prototype.setVol = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cTn, pr));
-        this.cTn = pr;
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.vol, pr));
+        this.vol = pr;
     };
 
     function CCmd() {
@@ -970,5 +1034,91 @@
     CVideo.prototype.setFullScrn = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.fullScrn, pr));
         this.fullScrn = pr;
+    };
+
+    function COleChartEl() {
+        CBaseFormatObject.call(this);
+        this.lvl = null;
+        this.type = null;
+    }
+    InitClass(COleChartEl, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    COleChartEl.prototype.setLvl = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.lvl, pr));
+        this.lvl = pr;
+    };
+    COleChartEl.prototype.setType = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.type, pr));
+        this.type = pr;
+    };
+
+    function CTLPoint() {//rCtr
+        CBaseFormatObject.call(this);
+        this.x = null;
+        this.y = null;
+    }
+    InitClass(CTLPoint, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CTLPoint.prototype.setX = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.x, pr));
+        this.x = pr;
+    };
+    CTLPoint.prototype.setY = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.y, pr));
+        this.y = pr;
+    };
+
+    function CSndAc() {//rCtr
+        CBaseFormatObject.call(this);
+        this.endSnd = null;
+        this.stSnd = null;
+    }
+    InitClass(CSndAc, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CSndAc.prototype.setEndSnd = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.endSnd, pr));
+        this.endSnd = pr;
+    };
+    CSndAc.prototype.setStSnd = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.stSnd, pr));
+        this.stSnd = pr;
+    };
+
+    function CStSnd() {//rCtr
+        CBaseFormatObject.call(this);
+        this.snd = null;
+        this.loop = null;
+    }
+    InitClass(CStSnd, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CStSnd.prototype.setSnd = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.snd, pr));
+        this.snd = pr;
+    };
+    CStSnd.prototype.setLoop = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.loop, pr));
+        this.loop = pr;
+    };
+
+    function CTxEl() {//rCtr
+        CBaseFormatObject.call(this);
+        this.charRg = null;
+        this.pRg = null;
+    }
+    InitClass(CTxEl, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CTxEl.prototype.setCharRg = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.charRg, pr));
+        this.charRg = pr;
+    };
+    CTxEl.prototype.setPRg = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.pRg, pr));
+        this.pRg = pr;
+    };
+
+
+    function CWheel() {
+        CBaseFormatObject.call(this);
+        this.spokes = null;
+    }
+    InitClass(CWheel, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CWheel.prototype.setSpokes = function(pr) {
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.spokes, pr));
+        this.spokes = pr;
     };
 })(window);
