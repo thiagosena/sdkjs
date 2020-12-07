@@ -2403,8 +2403,8 @@ function CHorRuler()
             {
                 dCenterX = left + (_margin_left +  this.m_dIndentLeft_old) * dKoef_mm_to_pix;
 
-                var1 = parseInt(dCenterX - 1 * g_dKoef_mm_to_pix * dPR) + indent;
-                var4 = parseInt(dCenterX + 1 * g_dKoef_mm_to_pix * dPR) + 3 * indent;
+                var1 = parseInt(dCenterX - 1 * g_dKoef_mm_to_pix * dPR) - indent + Math.round(dPR) - 1;
+                var4 = parseInt(dCenterX + 1 * g_dKoef_mm_to_pix * dPR) + indent + Math.round(dPR) - 1;
 
                 context.beginPath();
                 context.lineWidth = Math.round(dPR);
@@ -2424,8 +2424,8 @@ function CHorRuler()
             if ((-10000 != this.m_dIndentLeftFirst_old) && (this.m_dIndentLeftFirst_old != this.m_dIndentLeftFirst))
             {
                 dCenterX = left + (_margin_left +  this.m_dIndentLeftFirst_old) * dKoef_mm_to_pix;
-                var1 = parseInt(dCenterX - 1 * g_dKoef_mm_to_pix * dPR) + indent;
-                var4 = parseInt(dCenterX + 1 * g_dKoef_mm_to_pix * dPR) + 3 * indent;
+                var1 = parseInt(dCenterX - 1 * g_dKoef_mm_to_pix * dPR) - indent + Math.round(dPR) - 1;
+                var4 = parseInt(dCenterX + 1 * g_dKoef_mm_to_pix * dPR) + indent + Math.round(dPR) - 1;
 
                 // first line indent
                 context.beginPath();
@@ -2443,8 +2443,8 @@ function CHorRuler()
             if ((-10000 != this.m_dIndentRight_old) && (this.m_dIndentRight_old != this.m_dIndentRight))
             {
                 dCenterX = left + (_margin_right -  this.m_dIndentRight_old) * dKoef_mm_to_pix;
-                var1 = parseInt(dCenterX - 1 * g_dKoef_mm_to_pix * dPR) + indent;
-                var4 = parseInt(dCenterX + 1 * g_dKoef_mm_to_pix * dPR) + 3 * indent;
+                var1 = parseInt(dCenterX - 1 * g_dKoef_mm_to_pix * dPR) - indent + Math.round(dPR) - 1;
+                var4 = parseInt(dCenterX + 1 * g_dKoef_mm_to_pix * dPR) + indent + Math.round(dPR) - 1;
 
                 context.beginPath();
                 context.lineWidth = Math.round(dPR);
@@ -2525,8 +2525,8 @@ function CHorRuler()
 
                 var _1mm_to_pix = g_dKoef_mm_to_pix * dPR;
 
-                var1 = parseInt(dCenterX - _1mm_to_pix) + indent;
-                var4 = parseInt(dCenterX + _1mm_to_pix) + 3 * indent;
+                var1 = parseInt(dCenterX - _1mm_to_pix) - indent + Math.round(dPR) - 1;
+                var4 = parseInt(dCenterX + _1mm_to_pix) + indent + Math.round(dPR) - 1;
 
                 context.beginPath();
                 context.lineWidth = roundDPR;
@@ -2545,8 +2545,8 @@ function CHorRuler()
 
                 // right indent
                 dCenterX = left + (_margin_right - this.m_dIndentRight) * dKoef_mm_to_pix;
-                var1 = parseInt(dCenterX - _1mm_to_pix) + indent;
-                var4 = parseInt(dCenterX + _1mm_to_pix) + 3 * indent;
+                var1 = parseInt(dCenterX - _1mm_to_pix) - indent + Math.round(dPR) - 1;
+                var4 = parseInt(dCenterX + _1mm_to_pix) + indent + Math.round(dPR) - 1;
 
                 context.beginPath();
                 context.lineWidth = Math.round(dPR);
@@ -2562,8 +2562,8 @@ function CHorRuler()
 
                 // first line indent
                 dCenterX = left + (_margin_left +  this.m_dIndentLeftFirst) * dKoef_mm_to_pix;
-                var1 = parseInt(dCenterX - _1mm_to_pix) + indent;
-                var4 = parseInt(dCenterX + _1mm_to_pix) + 3 * indent;
+                var1 = parseInt(dCenterX - _1mm_to_pix) - indent + Math.round(dPR) - 1;
+                var4 = parseInt(dCenterX + _1mm_to_pix) + indent + Math.round(dPR) - 1;
 
                 context.beginPath();
                 context.lineWidth = Math.round(dPR);
