@@ -1644,8 +1644,8 @@
     changesFactory[AscDFH.historyitem_AudioCMediaNode] = CChangeObject;
     changesFactory[AscDFH.historyitem_AudioIsNarration] = CChangeBool;
 
-    drawingsChangesMap[AscDFH.historyitem_AudioCMediaNode] = function(oClass, value) {oClass.cMediaNode = value;}
-    drawingsChangesMap[AscDFH.historyitem_AudioIsNarration] = function(oClass, value) {oClass.isNarration = value;}
+    drawingsChangesMap[AscDFH.historyitem_AudioCMediaNode] = function(oClass, value) {oClass.cMediaNode = value;};
+    drawingsChangesMap[AscDFH.historyitem_AudioIsNarration] = function(oClass, value) {oClass.isNarration = value;};
 
     function CAudio() {
         CBaseFormatObject.call(this);
@@ -1678,7 +1678,6 @@
     changesFactory[AscDFH.historyitem_CMediaNodeNumSld] = CChangeLong;
     changesFactory[AscDFH.historyitem_CMediaNodeShowWhenStopped] = CChangeBool;
     changesFactory[AscDFH.historyitem_CMediaNodeVol] = CChangeLong;
-
 
     drawingsChangesMap[AscDFH.historyitem_CMediaNodeCTn] = function(oClass, value) {oClass.cTn = value;};
     drawingsChangesMap[AscDFH.historyitem_CMediaNodeTgtEl] = function(oClass, value) {oClass.tgtEl = value;};
@@ -1742,6 +1741,14 @@
         }
     };
 
+
+    changesFactory[AscDFH.historyitem_CmdCBhvr] = CChangeObject;
+    changesFactory[AscDFH.historyitem_CmdCmd] = CChangeString;
+    changesFactory[AscDFH.historyitem_CmdType] = CChangeLong;
+
+    drawingsChangesMap[AscDFH.historyitem_CmdCBhvr] = function(oClass, value) {oClass.cBhvr = value;};
+    drawingsChangesMap[AscDFH.historyitem_CmdCmd] = function(oClass, value) {oClass.cmd = value;};
+    drawingsChangesMap[AscDFH.historyitem_CmdType] = function(oClass, value) {oClass.type = value;};
     function CCmd() {
         CBaseFormatObject.call(this);
         this.cBhvr = null;
@@ -1750,20 +1757,33 @@
     }
     InitClass(CCmd, CBaseFormatObject, AscDFH.historyitem_type_Cmd);
     CCmd.prototype.setCBhvr = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cBhvr, pr));
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_CmdCBhvr, this.cBhvr, pr));
         this.cBhvr = pr;
     };
     CCmd.prototype.setCmd = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cmd, pr));
+        oHistory.Add(new CChangeString(this, AscDFH.historyitem_CmdCmd, this.cmd, pr));
         this.cmd = pr;
     };
     CCmd.prototype.setType = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.type, pr));
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_CmdType, this.type, pr));
         this.type = pr;
     };
     CCmd.prototype.fillObject = function(oCopy) {
+        if(this.cBhvr !== null) {
+            oCopy.setCBhvr(this.cBhvr.copy());
+        }
+        if(this.cmd !== null) {
+            oCopy.setCmd(this.cmd);
+        }
+        if(this.type !== null) {
+            oCopy.setType(this.type);
+        }
     };
 
+
+
+    changesFactory[AscDFH.historyitem_TimeNodeContainerCTn] = CChangeObject;
+    drawingsChangesMap[AscDFH.historyitem_TimeNodeContainerCTn] = function(oClass, value) {oClass.cTn = value;};
 
     function CTimeNodeContainer() {//par, excl
         CBaseFormatObject.call(this);
@@ -1771,13 +1791,28 @@
     }
     InitClass(CTimeNodeContainer, CBaseFormatObject, AscDFH.historyitem_type_TimeNodeContainer);
     CTimeNodeContainer.prototype.setCTn = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cTn, pr));
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_TimeNodeContainerCTn, this.cTn, pr));
         this.cTn = pr;
     };
     CTimeNodeContainer.prototype.fillObject = function(oCopy) {
+        if(this.cTn !== null) {
+            oCopy.setCTn(this.cTn.copy());
+        }
     };
 
-    function CSeq() {//par, excl
+
+
+    changesFactory[AscDFH.historyitem_SeqNextCondLst] = CChangeObject;
+    changesFactory[AscDFH.historyitem_SeqPrevCondLst] = CChangeObject;
+    changesFactory[AscDFH.historyitem_SeqConcurrent] = CChangeBool;
+    changesFactory[AscDFH.historyitem_SeqNextAc] = CChangeLong;
+    changesFactory[AscDFH.historyitem_SeqPrevAc] = CChangeLong;
+    drawingsChangesMap[AscDFH.historyitem_SeqNextCondLst] = function(oClass, value) {oClass.nextCondLst = value;};
+    drawingsChangesMap[AscDFH.historyitem_SeqPrevCondLst] = function(oClass, value) {oClass.prevCondLst = value;};
+    drawingsChangesMap[AscDFH.historyitem_SeqConcurrent] = function(oClass, value) {oClass.concurrent = value;};
+    drawingsChangesMap[AscDFH.historyitem_SeqNextAc] = function(oClass, value) {oClass.nextAc = value;};
+    drawingsChangesMap[AscDFH.historyitem_SeqPrevAc] = function(oClass, value) {oClass.prevAc = value;};
+    function CSeq() {//
         CTimeNodeContainer.call(this);
         this.nextCondLst = null;
         this.prevCondLst = null;
@@ -1795,20 +1830,40 @@
         this.prevCondLst = pr;
     };
     CSeq.prototype.setConcurrent = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SeqConcurrent, this.concurrent, pr));
+        oHistory.Add(new CChangeBool(this, AscDFH.historyitem_SeqConcurrent, this.concurrent, pr));
         this.concurrent = pr;
     };
     CSeq.prototype.setNextAc = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SeqNextAc, this.nextAc, pr));
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_SeqNextAc, this.nextAc, pr));
         this.nextAc = pr;
     };
     CSeq.prototype.setPrevAc = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SeqPrevAc, this.prevAc, pr));
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_SeqPrevAc, this.prevAc, pr));
         this.prevAc = pr;
     };
     CSeq.prototype.fillObject = function(oCopy) {
+        if(this.nextCondLst !== null) {
+            oCopy.setNextCondLst(this.nextCondLst.copy());
+        }
+        if(this.prevCondLst !== null) {
+            oCopy.setPrevCondLst(this.prevCondLst.copy());
+        }
+        if(this.concurrent !== null) {
+            oCopy.setConcurrent(this.concurrent);
+        }
+        if(this.nextAc !== null) {
+            oCopy.setNextAc(this.nextAc);
+        }
+        if(this.prevAc !== null) {
+            oCopy.setPrevAc(this.prevAc);
+        }
     };
 
+
+    changesFactory[AscDFH.historyitem_SetCBhvr] = CChangeObject;
+    changesFactory[AscDFH.historyitem_SetTo] = CChangeObject;
+    drawingsChangesMap[AscDFH.historyitem_SetCBhvr] = function(oClass, value) {oClass.cBhvr = value;};
+    drawingsChangesMap[AscDFH.historyitem_SetTo] = function(oClass, value) {oClass.to = value;};
     function CSet() {//par, excl
         CBaseFormatObject.call(this);
         this.cBhvr = null;
@@ -1824,15 +1879,25 @@
         this.to = pr;
     };
     CSet.prototype.fillObject = function(oCopy) {
+        if(this.cBhvr !== null) {
+            oCopy.setCBhvr(this.cBhvr.copy());
+        }
+        if(this.to !== null) {
+            oCopy.setTo(this.to.copy());
+        }
     };
 
+    changesFactory[AscDFH.historyitem_VideoCMediaNode] = CChangeObject;
+    changesFactory[AscDFH.historyitem_VideoFullScrn] = CChangeBool;
+    drawingsChangesMap[AscDFH.historyitem_VideoCMediaNode] = function(oClass, value) {oClass.cMediaNode = value;};
+    drawingsChangesMap[AscDFH.historyitem_VideoFullScrn] = function(oClass, value) {oClass.fullScrn = value;};
     function CVideo() {//par, excl
         CBaseFormatObject.call(this);
         this.cMediaNode = null;
         this.fullScrn = null;
     }
     InitClass(CVideo, CBaseFormatObject, AscDFH.historyitem_type_Video);
-    CVideo.prototype.seCMediaNode = function(pr) {
+    CVideo.prototype.setCMediaNode = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_VideoCMediaNode, this.cMediaNode, pr));
         this.cMediaNode = pr;
     };
@@ -1841,8 +1906,19 @@
         this.fullScrn = pr;
     };
     CVideo.prototype.fillObject = function(oCopy) {
+        if(this.cMediaNode !== null) {
+            oCopy.setCMediaNode(this.cMediaNode.copy());
+        }
+        if(this.fullScrn !== null) {
+            oCopy.setFullScrn(this.fullScrn);
+        }
     };
 
+
+    changesFactory[AscDFH.historyitem_OleChartElLvl] = CChangeLong;
+    changesFactory[AscDFH.historyitem_OleChartElType] = CChangeLong;
+    drawingsChangesMap[AscDFH.historyitem_OleChartElLvl] = function(oClass, value) {oClass.lvl = value;};
+    drawingsChangesMap[AscDFH.historyitem_OleChartElType] = function(oClass, value) {oClass.type = value;};
     function COleChartEl() {
         CBaseFormatObject.call(this);
         this.lvl = null;
@@ -1850,16 +1926,27 @@
     }
     InitClass(COleChartEl, CBaseFormatObject, AscDFH.historyitem_type_OleChartEl);
     COleChartEl.prototype.setLvl = function(pr) {
-        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.lvl, pr));
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_OleChartElLvl, this.lvl, pr));
         this.lvl = pr;
     };
     COleChartEl.prototype.setType = function(pr) {
-        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Unknown_Unknown, this.type, pr));
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_OleChartElType, this.type, pr));
         this.type = pr;
     };
     COleChartEl.prototype.fillObject = function(oCopy) {
+        if(this.lvl !== null) {
+            oCopy.setLvl(this.lvl);
+        }
+        if(this.type !== null) {
+            oCopy.setType(this.type);
+        }
     };
 
+
+    changesFactory[AscDFH.historyitem_TlPointX] = CChangeDouble2;
+    changesFactory[AscDFH.historyitem_TlPointY] = CChangeDouble2;
+    drawingsChangesMap[AscDFH.historyitem_TlPointX] = function(oClass, value) {oClass.x = value;};
+    drawingsChangesMap[AscDFH.historyitem_TlPointY] = function(oClass, value) {oClass.y = value;};
     function CTLPoint() {//rCtr
         CBaseFormatObject.call(this);
         this.x = null;
@@ -1867,17 +1954,27 @@
     }
     InitClass(CTLPoint, CBaseFormatObject, AscDFH.historyitem_type_TlPoint);
     CTLPoint.prototype.setX = function(pr) {
-        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_TlPointX, this.x, pr));
+        oHistory.Add(new CChangeDouble2(this, AscDFH.historyitem_TlPointX, this.x, pr));
         this.x = pr;
     };
     CTLPoint.prototype.setY = function(pr) {
-        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_TlPointY, this.y, pr));
+        oHistory.Add(new CChangeDouble2(this, AscDFH.historyitem_TlPointY, this.y, pr));
         this.y = pr;
     };
     CTLPoint.prototype.fillObject = function(oCopy) {
+        if(this.x !== null) {
+            oCopy.setX(this.x);
+        }
+        if(this.y !== null) {
+            oCopy.setY(this.y);
+        }
     };
 
-    function CSndAc() {//rCtr
+    changesFactory[AscDFH.historyitem_SndAcEndSnd] = CChangeObject;
+    changesFactory[AscDFH.historyitem_SndAcStSnd] = CChangeObject;
+    drawingsChangesMap[AscDFH.historyitem_SndAcEndSnd] = function(oClass, value) {oClass.endSnd = value;};
+    drawingsChangesMap[AscDFH.historyitem_SndAcStSnd] = function(oClass, value) {oClass.stSnd = value;};
+    function CSndAc() {//
         CBaseFormatObject.call(this);
         this.endSnd = null;
         this.stSnd = null;
@@ -1892,9 +1989,20 @@
         this.stSnd = pr;
     };
     CSndAc.prototype.fillObject = function(oCopy) {
+        if(this.endSnd !== null) {
+            oCopy.setEndSnd(this.endSnd.copy());
+        }
+        if(this.stSnd !== null) {
+            oCopy.setStSnd(this.stSnd.copy());
+        }
     };
 
-    function CStSnd() {//rCtr
+
+    changesFactory[AscDFH.historyitem_StSndSnd] = CChangeObject;
+    changesFactory[AscDFH.historyitem_StSndLoop] = CChangeBool;
+    drawingsChangesMap[AscDFH.historyitem_StSndSnd] = function(oClass, value) {oClass.snd = value;};
+    drawingsChangesMap[AscDFH.historyitem_StSndLoop] = function(oClass, value) {oClass.loop = value;};
+    function CStSnd() {//
         CBaseFormatObject.call(this);
         this.snd = null;
         this.loop = null;
@@ -1909,8 +2017,21 @@
         this.loop = pr;
     };
     CStSnd.prototype.fillObject = function(oCopy) {
+        if(this.snd !== null) {
+            oCopy.setSnd(this.snd.copy());
+        }
+        if(this.loop !== null) {
+            oCopy.setLoop(this.loop);
+        }
     };
 
+
+
+
+    changesFactory[AscDFH.historyitem_TxElCharRg] = CChangeObject;
+    changesFactory[AscDFH.historyitem_TxElPRg] = CChangeObject;
+    drawingsChangesMap[AscDFH.historyitem_TxElCharRg] = function(oClass, value) {oClass.charRg = value;};
+    drawingsChangesMap[AscDFH.historyitem_TxElPRg] = function(oClass, value) {oClass.pRg = value;};
     function CTxEl() {//rCtr
         CBaseFormatObject.call(this);
         this.charRg = null;
@@ -1926,8 +2047,17 @@
         this.pRg = pr;
     };
     CTxEl.prototype.fillObject = function(oCopy) {
+        if(this.charRg !== null) {
+            oCopy.setCharRg(this.charRg.copy());
+        }
+        if(this.pRg !== null) {
+            oCopy.setPRg(this.pRg.copy());
+        }
     };
 
+
+    changesFactory[AscDFH.historyitem_WheelSpokes] = CChangeLong;
+    drawingsChangesMap[AscDFH.historyitem_WheelSpokes] = function(oClass, value) {oClass.spokes = value;};
     function CWheel() {
         CBaseFormatObject.call(this);
         this.spokes = null;
@@ -1938,5 +2068,8 @@
         this.spokes = pr;
     };
     CWheel.prototype.fillObject = function(oCopy) {
+        if(this.spokes !== null) {
+            oCopy.setSpokes(this.spokes);
+        }
     };
 })(window);

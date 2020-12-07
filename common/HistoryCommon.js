@@ -3138,9 +3138,16 @@
 	AscDFH.historyitem_CMediaNodeShowWhenStopped = AscDFH.historyitem_type_CMediaNode | 5;
 	AscDFH.historyitem_CMediaNodeVol             = AscDFH.historyitem_type_CMediaNode | 6;
 
-	AscDFH.historyitem_Cmd         = AscDFH.historyitem_type_Cmd | 1;
-	AscDFH.historyitem_Cmd         = AscDFH.historyitem_type_Cmd | 2;
-	AscDFH.historyitem_Cmd         = AscDFH.historyitem_type_Cmd | 3;
+	AscDFH.historyitem_CmdCBhvr         = AscDFH.historyitem_type_Cmd | 1;
+	AscDFH.historyitem_CmdCmd           = AscDFH.historyitem_type_Cmd | 2;
+	AscDFH.historyitem_CmdType          = AscDFH.historyitem_type_Cmd | 3;
+
+
+	AscDFH.historyitem_OleChartElLvl   = AscDFH.historyitem_type_OleChartEl | 1;
+	AscDFH.historyitem_OleChartElType  = AscDFH.historyitem_type_OleChartEl | 2;
+
+
+	AscDFH.historyitem_TimeNodeContainerCTn  = AscDFH.historyitem_type_TimeNodeContainer | 1;
 
 	AscDFH.historyitem_SeqNextCondLst         = AscDFH.historyitem_type_Seq | 1;
 	AscDFH.historyitem_SeqPrevCondLst         = AscDFH.historyitem_type_Seq | 2;
