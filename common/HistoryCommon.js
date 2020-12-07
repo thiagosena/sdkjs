@@ -3131,6 +3131,17 @@
 	AscDFH.historyitem_AudioCMediaNode        = AscDFH.historyitem_type_Audio | 1;
 	AscDFH.historyitem_AudioIsNarration       = AscDFH.historyitem_type_Audio | 2;
 
+	AscDFH.historyitem_CMediaNodeCTn             = AscDFH.historyitem_type_CMediaNode | 1;
+	AscDFH.historyitem_CMediaNodeTgtEl           = AscDFH.historyitem_type_CMediaNode | 2;
+	AscDFH.historyitem_CMediaNodeMute            = AscDFH.historyitem_type_CMediaNode | 3;
+	AscDFH.historyitem_CMediaNodeNumSld          = AscDFH.historyitem_type_CMediaNode | 4;
+	AscDFH.historyitem_CMediaNodeShowWhenStopped = AscDFH.historyitem_type_CMediaNode | 5;
+	AscDFH.historyitem_CMediaNodeVol             = AscDFH.historyitem_type_CMediaNode | 6;
+
+	AscDFH.historyitem_Cmd         = AscDFH.historyitem_type_Cmd | 1;
+	AscDFH.historyitem_Cmd         = AscDFH.historyitem_type_Cmd | 2;
+	AscDFH.historyitem_Cmd         = AscDFH.historyitem_type_Cmd | 3;
+
 	AscDFH.historyitem_SeqNextCondLst         = AscDFH.historyitem_type_Seq | 1;
 	AscDFH.historyitem_SeqPrevCondLst         = AscDFH.historyitem_type_Seq | 2;
 	AscDFH.historyitem_SeqConcurrent          = AscDFH.historyitem_type_Seq | 3;

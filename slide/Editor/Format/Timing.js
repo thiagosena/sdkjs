@@ -1642,10 +1642,10 @@
     };
 
     changesFactory[AscDFH.historyitem_AudioCMediaNode] = CChangeObject;
-    changesFactory[AscDFH.historyitem_AudioIsNarration] = CChangeObject;
+    changesFactory[AscDFH.historyitem_AudioIsNarration] = CChangeBool;
 
-    drawingsChangesMap[AscDFH.historyitem_AudioCMediaNode] = function(oClass, value) {oClass.cMediaN}
-    drawingsChangesMap[AscDFH.historyitem_AudioIsNarration] = function(oClass, value) {oClass.cMediaN}
+    drawingsChangesMap[AscDFH.historyitem_AudioCMediaNode] = function(oClass, value) {oClass.cMediaNode = value;}
+    drawingsChangesMap[AscDFH.historyitem_AudioIsNarration] = function(oClass, value) {oClass.isNarration = value;}
 
     function CAudio() {
         CBaseFormatObject.call(this);
@@ -1655,15 +1655,37 @@
     InitClass(CAudio, CBaseFormatObject, AscDFH.historyitem_type_Audio);
 
     CAudio.prototype.setCMediaNode = function(pr) {
-        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_AudioCMediaNode, this.cMediaNode, pr));
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_AudioCMediaNode, this.cMediaNode, pr));
         this.cMediaNode = pr;
     };
     CAudio.prototype.setIsNarration = function(pr) {
-        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_AudioIsNarration, this.isNarration, pr));
+        oHistory.Add(new CChangeBool(this, AscDFH.historyitem_AudioIsNarration, this.isNarration, pr));
         this.isNarration = pr;
     };
     CAudio.prototype.fillObject = function(oCopy) {
+        if(this.cMediaNode !== null) {
+            oCopy.setCMediaNode(this.cMediaNode.copy());
+        }
+        if(this.isNarration !== null) {
+            oCopy.setIsNarration(this.isNarration);
+        }
     };
+
+
+    changesFactory[AscDFH.historyitem_CMediaNodeCTn] = CChangeObject;
+    changesFactory[AscDFH.historyitem_CMediaNodeTgtEl] = CChangeObject;
+    changesFactory[AscDFH.historyitem_CMediaNodeMute] = CChangeBool;
+    changesFactory[AscDFH.historyitem_CMediaNodeNumSld] = CChangeLong;
+    changesFactory[AscDFH.historyitem_CMediaNodeShowWhenStopped] = CChangeBool;
+    changesFactory[AscDFH.historyitem_CMediaNodeVol] = CChangeLong;
+
+
+    drawingsChangesMap[AscDFH.historyitem_CMediaNodeCTn] = function(oClass, value) {oClass.cTn = value;};
+    drawingsChangesMap[AscDFH.historyitem_CMediaNodeTgtEl] = function(oClass, value) {oClass.tgtEl = value;};
+    drawingsChangesMap[AscDFH.historyitem_CMediaNodeMute] = function(oClass, value) {oClass.mute = value;};
+    drawingsChangesMap[AscDFH.historyitem_CMediaNodeNumSld] = function(oClass, value) {oClass.numSld = value;};
+    drawingsChangesMap[AscDFH.historyitem_CMediaNodeShowWhenStopped] = function(oClass, value) {oClass.showWhenStopped = value;};
+    drawingsChangesMap[AscDFH.historyitem_CMediaNodeVol] = function(oClass, value) {oClass.vol = value;};
 
     function CCMediaNode() {
         CBaseFormatObject.call(this);
@@ -1676,30 +1698,48 @@
     }
     InitClass(CCMediaNode, CBaseFormatObject, AscDFH.historyitem_type_CMediaNode);
     CCMediaNode.prototype.setCTn = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cTn, pr));
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_CMediaNodeCTn, this.cTn, pr));
         this.cTn = pr;
     };
     CCMediaNode.prototype.setTgtEl = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.tgtEl, pr));
+        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_CMediaNodeTgtEl, this.tgtEl, pr));
         this.tgtEl = pr;
     };
     CCMediaNode.prototype.setMute = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.mute, pr));
+        oHistory.Add(new CChangeBool(this, AscDFH.historyitem_CMediaNodeMute, this.mute, pr));
         this.mute = pr;
     };
     CCMediaNode.prototype.setNumSld = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.numSld, pr));
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_CMediaNodeNumSld, this.numSld, pr));
         this.numSld = pr;
     };
     CCMediaNode.prototype.setShowWhenStopped = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.showWhenStopped, pr));
+        oHistory.Add(new CChangeBool(this, AscDFH.historyitem_CMediaNodeShowWhenStopped, this.showWhenStopped, pr));
         this.showWhenStopped = pr;
     };
     CCMediaNode.prototype.setVol = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.vol, pr));
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_CMediaNodeVol, this.vol, pr));
         this.vol = pr;
     };
     CCMediaNode.prototype.fillObject = function(oCopy) {
+        if(this.cTn !== null) {
+            oCopy.setCTn(this.cTn.copy());
+        }
+        if(this.tgtEl !== null) {
+            oCopy.setTgtEl(this.tgtEl.copy());
+        }
+        if(this.mute !== null) {
+            oCopy.setMute(this.mute);
+        }
+        if(this.numSld !== null) {
+            oCopy.setNumSld(this.numSld);
+        }
+        if(this.showWhenStopped !== null) {
+            oCopy.setShowWhenStopped(this.showWhenStopped);
+        }
+        if(this.vol !== null) {
+            oCopy.setVol(this.vol);
+        }
     };
 
     function CCmd() {
