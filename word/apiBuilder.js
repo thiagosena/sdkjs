@@ -4806,8 +4806,8 @@
 	{
 		if (this.Paragraph)
 		{
-			if (this.Paragraph.TextPr.Value.GetBold())
-				return true;
+			if (this.Paragraph.TextPr.Value.GetBold() != undefined)
+				return this.Paragraph.TextPr.Value.GetBold();
 			else
 				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetBold();
 		}
@@ -4819,7 +4819,7 @@
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
 	 * @param {boolean} isCaps - Specifies that the contents of the current paragraph are displayed capitalized.
-	 * @returns {bool} this
+	 * @returns {ApiParagraph} this
 	 */
 	ApiParagraph.prototype.SetCaps = function(isCaps)
 	{
@@ -4839,8 +4839,8 @@
 	{
 		if (this.Paragraph)
 		{
-			if (this.Paragraph.TextPr.Value.GetCaps())
-				return true;
+			if (this.Paragraph.TextPr.Value.GetCaps() != undefined)
+				return this.Paragraph.TextPr.Value.GetCaps();
 			else
 				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetCaps();
 		}
@@ -4937,8 +4937,8 @@
 	{
 		if (this.Paragraph)
 		{
-			if (this.Paragraph.TextPr.Value.GetDStrikeout())
-				return true;
+			if (this.Paragraph.TextPr.Value.GetDStrikeout() != undefined)
+				return this.Paragraph.TextPr.Value.GetDStrikeout();
 			else
 				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetDStrikeout();
 		}
@@ -4988,7 +4988,7 @@
 		if (this.Paragraph)
 		{
 			if (this.Paragraph.TextPr.Value.GetFontFamily())
-				return this.Paragraph.TextPr.Value.GetFontFamily()
+				return this.Paragraph.TextPr.Value.GetFontFamily();
 			else
 				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetFontFamily();
 		}
@@ -5021,7 +5021,7 @@
 		if (this.Paragraph)
 		{
 			if (this.Paragraph.TextPr.Value.GetFontSize())
-				return 2 * this.Paragraph.TextPr.Value.GetFontSize()
+				return 2 * this.Paragraph.TextPr.Value.GetFontSize();
 			else
 				return 2 * this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetFontSize();
 		}
@@ -5105,10 +5105,10 @@
 	 */
 	ApiParagraph.prototype.GetItalic = function()
 	{
-		if (this.Paragraph && this.Paragraph.TextPr.Value.GetItalic())
+		if (this.Paragraph)
 		{
-			if (this.Paragraph.TextPr.Value.GetItalic())
-				return true;
+			if (this.Paragraph.TextPr.Value.GetItalic() != undefined)
+				return this.Paragraph.TextPr.Value.GetItalic();
 			else
 				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetItalic();
 		}
@@ -5143,7 +5143,7 @@
 		if (this.Paragraph)
 		{
 			if (this.Paragraph.TextPr.Value.GetPosition())
-				return true
+				return this.Paragraph.TextPr.Value.GetPosition();
 			else
 				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetPosition();
 		}
@@ -5255,8 +5255,8 @@
 	{
 		if (this.Paragraph)
 		{
-			if (this.Paragraph.TextPr.Value.GetSmallCaps())
-				return true
+			if (this.Paragraph.TextPr.Value.GetSmallCaps() != undefined)
+				return this.Paragraph.TextPr.Value.GetSmallCaps();
 			else
 				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetSmallCaps();
 		}
@@ -5289,7 +5289,7 @@
 		if (this.Paragraph)
 		{
 			if (this.Paragraph.TextPr.Value.GetSpacing())
-				return true
+				return this.Paragraph.TextPr.Value.GetSpacing();
 			else
 				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetSpacing();
 		}
@@ -5324,8 +5324,8 @@
 	{
 		if (this.Paragraph)
 		{
-			if (this.Paragraph.TextPr.Value.GetStrikeout())
-				return true
+			if (this.Paragraph.TextPr.Value.GetStrikeout() != undefined)
+				return this.Paragraph.TextPr.Value.GetStrikeout();
 			else
 				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetStrikeout();
 		}
@@ -5358,8 +5358,8 @@
 	{
 		if (this.Paragraph)
 		{
-			if (this.Paragraph.TextPr.Value.GetUnderline())
-				return true
+			if (this.Paragraph.TextPr.Value.GetUnderline() != undefined)
+				return this.Paragraph.TextPr.Value.GetUnderline();
 			else
 				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetUnderline();
 		}
