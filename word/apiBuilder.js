@@ -4797,11 +4797,29 @@
 		return this;
 	};
 	/**
+	 * Get the bold property of the current paragraph.
+	 * @memberof ApiParagraph
+	 * @typeofeditors ["CDE"]
+	 * @returns {bool} 
+	 */
+	ApiParagraph.prototype.GetBold = function()
+	{
+		if (this.Paragraph)
+		{
+			if (this.Paragraph.TextPr.Value.GetBold())
+				return true;
+			else
+				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetBold();
+		}
+		
+		return false;
+	};
+	/**
 	 * Specify that any lowercase characters in this paragraph are formatted for display only as their capital letter character equivalents.
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
 	 * @param {boolean} isCaps - Specifies that the contents of the current paragraph are displayed capitalized.
-	 * @returns {ApiParagraph} this
+	 * @returns {bool} this
 	 */
 	ApiParagraph.prototype.SetCaps = function(isCaps)
 	{
@@ -4810,6 +4828,24 @@
 		this.Paragraph.Set_ApplyToAll(false);
 		
 		return this;
+	};
+	/**
+	 * Get the caps property of the current paragraph.
+	 * @memberof ApiParagraph
+	 * @typeofeditors ["CDE"]
+	 * @returns {bool} 
+	 */
+	ApiParagraph.prototype.GetCaps = function()
+	{
+		if (this.Paragraph)
+		{
+			if (this.Paragraph.TextPr.Value.GetCaps())
+				return true;
+			else
+				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetCaps();
+		}
+		
+		return false;
 	};
 	/**
 	 * Set the text color for the current paragraph in the RGB format.
@@ -4853,6 +4889,30 @@
 		return this;
 	};
 	/**
+	 * Get the color property of the current paragraph.
+	 * @memberof ApiParagraph
+	 * @typeofeditors ["CDE"]
+	 * @returns {?ApiRGBColor} - returns null if paragraph doesn't exist.
+	 */
+	ApiParagraph.prototype.GetColor = function()
+	{
+		if (this.Paragraph)
+		{
+			if (this.Paragraph.TextPr.Value.GetColor()) 
+			{
+				var oColor = this.Paragraph.TextPr.Value.GetColor();
+				return new ApiRGBColor(oColor.r, oColor.g, oColor.b);
+			}	
+			else 
+			{
+				var oColor = this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetColor();
+				return new ApiRGBColor(oColor.r, oColor.g, oColor.b);
+			}
+		}
+		
+		return null;
+	};
+	/**
 	 * Specify that the contents of this paragraph is displayed with two horizontal lines through each character displayed on the line.
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
@@ -4866,6 +4926,24 @@
 		this.Paragraph.Set_ApplyToAll(false);
 		
 		return this;
+	};
+	/**
+	 * Get the DoubleStrikeout property of the current paragraph.
+	 * @memberof ApiParagraph
+	 * @typeofeditors ["CDE"]
+	 * @returns {bool} 
+	 */
+	ApiParagraph.prototype.GetDoubleStrikeout = function()
+	{
+		if (this.Paragraph)
+		{
+			if (this.Paragraph.TextPr.Value.GetDStrikeout())
+				return true;
+			else
+				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetDStrikeout();
+		}
+		
+		return false;
 	};
 	/**
 	 * Set all 4 font slots with the specified font family.
@@ -4900,6 +4978,24 @@
 		return false;
 	};
 	/**
+	 * Get font family of the current paragraph.
+	 * @memberof ApiParagraph
+	 * @typeofeditors ["CDE"]
+	 * @returns {string} returns '' if paragraph doesn't exist.
+	 */
+	ApiParagraph.prototype.GetFontFamily = function()
+	{
+		if (this.Paragraph)
+		{
+			if (this.Paragraph.TextPr.Value.GetFontFamily())
+				return this.Paragraph.TextPr.Value.GetFontFamily()
+			else
+				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetFontFamily();
+		}
+		
+		return '';
+	};
+	/**
 	 * Set the font size for the characters of the current paragraph.
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
@@ -4913,6 +5009,24 @@
 		this.Paragraph.Set_ApplyToAll(false);
 		
 		return this;
+	};
+	/**
+	 * Get the font size of the current paragraph.
+	 * @memberof ApiParagraph
+	 * @typeofeditors ["CDE"]
+	 * @returns {hps} half-points (2 half-points = 1 point). Returns 0 if paragraph doesn't exist.
+	 */
+	ApiParagraph.prototype.GetFontSize = function()
+	{
+		if (this.Paragraph)
+		{
+			if (this.Paragraph.TextPr.Value.GetFontSize())
+				return 2 * this.Paragraph.TextPr.Value.GetFontSize()
+			else
+				return 2 * this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetFontSize();
+		}
+		
+		return 0;
 	};
 	/**
 	 * Specify a highlighting color in the RGB format which is applied as a background for the contents of the current paragraph.
@@ -4941,6 +5055,34 @@
 		return this;
 	};
 	/**
+	 * Get the highlight property of the current paragraph.
+	 * @memberof ApiParagraph
+	 * @typeofeditors ["CDE"]
+	 * @returns {?ApiRGBColor} - returns null if paragraph doesn't exist or highlight is undefined.
+	 */
+	ApiParagraph.prototype.GetHighlight = function()
+	{
+		if (this.Paragraph)
+		{
+			if (this.Paragraph.TextPr.Value.GetHighlight()) 
+			{
+				var oColor = this.Paragraph.TextPr.Value.GetHighlight();
+				if (oColor)
+					return new ApiRGBColor(oColor.r, oColor.g, oColor.b);
+				return null;
+			}	
+			else 
+			{
+				var oColor = this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetHighlight();
+				if (oColor && oColor != -1)
+					return new ApiRGBColor(oColor.r, oColor.g, oColor.b);
+				return null;
+			}
+		}
+		
+		return null;
+	};
+	/**
 	 * Set the italic property to the text character.
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
@@ -4954,6 +5096,24 @@
 		this.Paragraph.Set_ApplyToAll(false);
 		
 		return this;
+	};
+	/**
+	 * Get the italic of the current paragraph.
+	 * @memberof ApiParagraph
+	 * @typeofeditors ["CDE"]
+	 * @returns {bool} - returns false if paragraph doesn't exist.
+	 */
+	ApiParagraph.prototype.GetItalic = function()
+	{
+		if (this.Paragraph && this.Paragraph.TextPr.Value.GetItalic())
+		{
+			if (this.Paragraph.TextPr.Value.GetItalic())
+				return true;
+			else
+				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetItalic();
+		}
+		
+		return false;
 	};
 	/**
 	 * Specify the amount by which text is raised or lowered for this paragraph in relation to the default
@@ -4971,6 +5131,24 @@
 		this.Paragraph.Set_ApplyToAll(false);
 		
 		return this;
+	};
+	/**
+	 * Get the Position of the current paragraph.
+	 * @memberof ApiParagraph
+	 * @typeofeditors ["CDE"]
+	 * @returns {hps} - returns -1 if paragraph doesn't exist.
+	 */
+	ApiParagraph.prototype.GetPosition = function()
+	{
+		if (this.Paragraph)
+		{
+			if (this.Paragraph.TextPr.Value.GetPosition())
+				return true
+			else
+				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetPosition();
+		}
+		
+		return -1;
 	};
 	/**
 	 * Specify the shading applied to the contents of the current paragraph.
@@ -5023,6 +5201,32 @@
 		return this;
 	};
 	/**
+	 * Get the Shadow property of the current paragraph.
+	 * @memberof ApiParagraph
+	 * @typeofeditors ["CDE"]
+	 * @returns {?ApiRGBColor} - returns null if paragraph doesn't exist or shadow is undefined.
+	 */
+	ApiParagraph.prototype.GetShd = function()
+	{
+		if (this.Paragraph)
+		{
+			if (this.Paragraph.TextPr.Value.GetShd()) 
+			{
+				var oColor = this.Paragraph.TextPr.Value.GetShd();
+				return new ApiRGBColor(oColor.r, oColor.g, oColor.b);
+			}	
+			else 
+			{
+				var oColor = this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetShd();
+				if (oColor)
+					return new ApiRGBColor(oColor.r, oColor.g, oColor.b);
+				return null;
+			}
+		}
+		
+		return null;
+	};
+	/**
 	 * Specify that all small letter characters in this paragraph are formatted for display only as their capital
 	 * letter character equivalents in a font size two points smaller than the actual font size specified for this text.
 	 * @memberof ApiParagraph
@@ -5042,6 +5246,24 @@
 		return this;
 	};
 	/**
+	 * Get the SmallCaps of the current paragraph.
+	 * @memberof ApiParagraph
+	 * @typeofeditors ["CDE"]
+	 * @returns {bool} - returns false if paragraph doesn't exist.
+	 */
+	ApiParagraph.prototype.GetSmallCaps = function()
+	{
+		if (this.Paragraph)
+		{
+			if (this.Paragraph.TextPr.Value.GetSmallCaps())
+				return true
+			else
+				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetSmallCaps();
+		}
+		
+		return false;
+	};
+	/**
 	 * Set text spacing measured in twentieths of a point.
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
@@ -5055,6 +5277,24 @@
 		this.Paragraph.Set_ApplyToAll(false);
 		
 		return this;
+	};
+	/**
+	 * Get the Spacing of the current paragraph.
+	 * @memberof ApiParagraph
+	 * @typeofeditors ["CDE"]
+	 * @returns {twips} - returns 0 if paragraph doesn't exist.
+	 */
+	ApiParagraph.prototype.GetSpacing = function()
+	{
+		if (this.Paragraph)
+		{
+			if (this.Paragraph.TextPr.Value.GetSpacing())
+				return true
+			else
+				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetSpacing();
+		}
+		
+		return false;
 	};
 	/**
 	 * Specify that the contents of this paragraph are displayed with a single horizontal line through the center of the line.
@@ -5075,6 +5315,24 @@
 		return this;
 	};
 	/**
+	 * Get the Strikeout of the current paragraph.
+	 * @memberof ApiParagraph
+	 * @typeofeditors ["CDE"]
+	 * @returns {bool} - returns false if paragraph doesn't exist.
+	 */
+	ApiParagraph.prototype.GetStrikeout = function()
+	{
+		if (this.Paragraph)
+		{
+			if (this.Paragraph.TextPr.Value.GetStrikeout())
+				return true
+			else
+				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetStrikeout();
+		}
+		
+		return false;
+	};
+	/**
 	 * Specify that the contents of this paragraph are displayed along with a line appearing directly below the character
 	 * (less than all the spacing above and below the characters on the line).
 	 * @memberof ApiParagraph
@@ -5089,6 +5347,24 @@
 		this.Paragraph.Set_ApplyToAll(false);
 		
 		return this;
+	};
+	/**
+	 * Get the Underline of the current paragraph.
+	 * @memberof ApiParagraph
+	 * @typeofeditors ["CDE"]
+	 * @returns {bool} - returns false if paragraph doesn't exist.
+	 */
+	ApiParagraph.prototype.GetUnderline = function()
+	{
+		if (this.Paragraph)
+		{
+			if (this.Paragraph.TextPr.Value.GetUnderline())
+				return true
+			else
+				return this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetUnderline();
+		}
+		
+		return false;
 	};
 	/**
 	 * Specify the alignment which will be applied to the contents of this paragraph in relation to the default appearance of the paragraph text:
@@ -5118,6 +5394,48 @@
 		this.Paragraph.Set_ApplyToAll(false);
 		
 		return this;
+	};
+	/**
+	 * Get the VertAlign of the current paragraph.
+	 * @memberof ApiParagraph
+	 * @typeofeditors ["CDE"]
+	 * @returns {string} - returns '' if paragraph doesn't exist.
+	 */
+	ApiParagraph.prototype.GetVertAlign = function()
+	{
+		if (this.Paragraph)
+		{
+			if (this.Paragraph.TextPr.Value.GetVertAlign())
+			{
+				var align = this.Paragraph.TextPr.Value.GetVertAlign();
+				
+				switch(align)
+				{
+					case 0:
+						return "baseline";
+					case 1:
+						return "superscript";
+					case 2:
+						return "subscript";
+				}
+			}
+			else 
+			{
+				var align = this.Paragraph.GetLogicDocument().Styles.Default.TextPr.GetVertAlign();
+
+				switch(align)
+				{
+					case 0:
+						return "baseline";
+					case 1:
+						return "superscript";
+					case 2:
+						return "subscript";
+				}
+			}
+		}
+		
+		return '';
 	};
 	/**
 	 * Get the last no empty element of the paragraph.
@@ -11764,20 +12082,35 @@
 	ApiParagraph.prototype["Push"]                   = ApiParagraph.prototype.Push;
 	ApiParagraph.prototype["GetLastRunWithText"]     = ApiParagraph.prototype.GetLastRunWithText;
 	ApiParagraph.prototype["SetBold"]                = ApiParagraph.prototype.SetBold;
+	ApiParagraph.prototype["GetBold"]                = ApiParagraph.prototype.GetBold;
 	ApiParagraph.prototype["SetCaps"]                = ApiParagraph.prototype.SetCaps;
+	ApiParagraph.prototype["GetCaps"]                = ApiParagraph.prototype.GetCaps;
 	ApiParagraph.prototype["SetColor"]               = ApiParagraph.prototype.SetColor;
+	ApiParagraph.prototype["GetColor"]               = ApiParagraph.prototype.GetColor;
 	ApiParagraph.prototype["SetDoubleStrikeout"]     = ApiParagraph.prototype.SetDoubleStrikeout;
+	ApiParagraph.prototype["GetDoubleStrikeout"]     = ApiParagraph.prototype.GetDoubleStrikeout;
 	ApiParagraph.prototype["SetFontFamily"]          = ApiParagraph.prototype.SetFontFamily;
+	ApiParagraph.prototype["GetFontFamily"]          = ApiParagraph.prototype.GetFontFamily;
 	ApiParagraph.prototype["SetFontSize"]            = ApiParagraph.prototype.SetFontSize;
+	ApiParagraph.prototype["GetFontSize"]            = ApiParagraph.prototype.GetFontSize;
 	ApiParagraph.prototype["SetHighlight"]           = ApiParagraph.prototype.SetHighlight;
+	ApiParagraph.prototype["GetHighlight"]           = ApiParagraph.prototype.GetHighlight;
 	ApiParagraph.prototype["SetItalic"]              = ApiParagraph.prototype.SetItalic;
+	ApiParagraph.prototype["GetItalic"]              = ApiParagraph.prototype.GetItalic;
 	ApiParagraph.prototype["SetPosition"]            = ApiParagraph.prototype.SetPosition;
+	ApiParagraph.prototype["GetPosition"]            = ApiParagraph.prototype.GetPosition;
 	ApiParagraph.prototype["SetShd"]                 = ApiParagraph.prototype.SetShd;
+	ApiParagraph.prototype["GetShd"]                 = ApiParagraph.prototype.GetShd;
 	ApiParagraph.prototype["SetSmallCaps"]           = ApiParagraph.prototype.SetSmallCaps;
+	ApiParagraph.prototype["GetSmallCaps"]           = ApiParagraph.prototype.GetSmallCaps;
 	ApiParagraph.prototype["SetSpacing"]             = ApiParagraph.prototype.SetSpacing;
+	ApiParagraph.prototype["GetSpacing"]             = ApiParagraph.prototype.GetSpacing;
 	ApiParagraph.prototype["SetStrikeout"]           = ApiParagraph.prototype.SetStrikeout;
+	ApiParagraph.prototype["GetStrikeout"]           = ApiParagraph.prototype.GetStrikeout;
 	ApiParagraph.prototype["SetUnderline"]           = ApiParagraph.prototype.SetUnderline;
+	ApiParagraph.prototype["GetUnderline"]           = ApiParagraph.prototype.GetUnderline;
 	ApiParagraph.prototype["SetVertAlign"]           = ApiParagraph.prototype.SetVertAlign;
+	ApiParagraph.prototype["GetVertAlign"]           = ApiParagraph.prototype.GetVertAlign;
 	ApiParagraph.prototype["Last"]                   = ApiParagraph.prototype.Last;
 	ApiParagraph.prototype["GetAllContentControls"]  = ApiParagraph.prototype.GetAllContentControls;
 	ApiParagraph.prototype["GetAllDrawingObjects"]   = ApiParagraph.prototype.GetAllDrawingObjects;
